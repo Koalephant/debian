@@ -46,8 +46,8 @@ apt-get -y clean
 printf -- '==> %s\n' 'Removing APT files'
 find /var/lib/apt -type f -delete
 
-printf -- '==> %s\n' 'Removing caches'
-find /var/cache -type f -delete
+printf -- '==> %s\n' 'Removing caches (except DebConf)'
+find /var/cache -path /var/cache/debconf -prune -false -o -type f -exec rm -f {} \;
 printf -- '==> %s\n' 'Removing lintian linda'
 rm -rfv /usr/share/lintian/* /usr/share/linda/*
 
