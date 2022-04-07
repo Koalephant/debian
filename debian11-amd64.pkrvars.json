@@ -1,0 +1,12 @@
+{
+	"vm_name": "debian11-amd64",
+	"iso_checksum": "fab0b6d2ea4fa4fb14100225fcb2988b94a8e391f273b4bfaed6314dff124a42",
+	"iso_checksum_type": "sha256",
+	"iso_name": "debian-11.3.0-amd64-DVD-1.iso",
+	"iso_url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-11.3.0-amd64-DVD-1.iso",
+	"vmware_guest_os_type": "debian11-64",
+	"virtualbox_guest_os_type": "Debian_64",
+	"version": "1.0.0",
+	"version_description": "- Debian 11.3.0",
+	"box_description": "Debian 11 (Bullseye) 64bit"
+}

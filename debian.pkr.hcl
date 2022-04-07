@@ -1,3 +1,24 @@
+packer {
+	required_plugins {
+		parallels = {
+			version = ">= 1.0.1"
+			source  = "github.com/hashicorp/parallels"
+		}
+		virtualbox = {
+			version = ">= 1.0.2"
+			source  = "github.com/hashicorp/virtualbox"
+		}
+		vagrant = {
+			version = ">= 1.0.0"
+			source  = "github.com/hashicorp/vagrant"
+		}
+		vmware = {
+			version = ">= 1.0.0"
+			source  = "github.com/hashicorp/vmware"
+		}
+	}
+}
+
 variable "apt_backports" {
 	type = bool
 	default = true
@@ -109,7 +130,6 @@ variable "parallels_guest_os_type" {
 }
 variable "virtualbox_guest_os_type" {
 	type = string
-	default = "Debian_64"
 }
 variable "vmware_guest_os_type" {
 	type = string
@@ -161,6 +181,11 @@ variable "version" {
 }
 
 variable "version_description" {
+	type = string
+	default = ""
+}
+
+variable "box_description" {
 	type = string
 	default = ""
 }
@@ -381,7 +406,7 @@ build {
 	}
 
 	provisioner "file" {
-		destination = "${var.box_path}/${var.vm_name}/${var.version}/${build.name}.version"
+		destination = "${var.box_path}/${var.vm_name}/${var.version}/${source.name}.version"
 		direction = "download"
 		source = "/tmp/guest-additions-version.txt"
 	}
