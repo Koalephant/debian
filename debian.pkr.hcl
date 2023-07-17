@@ -403,6 +403,7 @@ build {
 	provisioner "file" {
 		destination = "/home/vagrant"
 		source = "tools-manual"
+		generated = true
 	}
 
 	provisioner "shell" {
