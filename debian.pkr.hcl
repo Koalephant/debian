@@ -362,7 +362,7 @@ source "virtualbox-iso" "virtualbox" {
 
 source "vmware-iso" "vmware" {
 	boot_command = local.boot_command
-	cdrom_adapter_type = "sata"
+	cdrom_adapter_type = var.vmware_disk_type
 	cpus = var.cpus
 	disk_adapter_type = var.vmware_disk_type
 	disk_size = var.disk_size
