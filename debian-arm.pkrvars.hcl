@@ -8,3 +8,4 @@ boot_command_post = [
 parallels_guest_tools = "lin-arm"
 vmware_hardware_version = 20
 vmware_guest_os_type = "arm-debian-64"
+vmware_disk_type = "sata"

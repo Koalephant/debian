@@ -149,6 +149,17 @@ variable "vmware_hardware_version" {
 	type = number
 	default = 9
 }
+
+variable "vmware_nic_type" {
+	type = string
+	default = "e1000"
+}
+
+variable "vmware_disk_type" {
+	type = string
+	default = "ide"
+}
+
 variable "preseed" {
 	type = string
 	default = "preseed.cfg"
@@ -353,7 +364,7 @@ source "vmware-iso" "vmware" {
 	boot_command = local.boot_command
 	cdrom_adapter_type = "sata"
 	cpus = var.cpus
-	disk_adapter_type = "sata"
+	disk_adapter_type = var.vmware_disk_type
 	disk_size = var.disk_size
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
@@ -363,7 +374,7 @@ source "vmware-iso" "vmware" {
 	iso_urls = local.iso_urls
 	memory = var.memory
 	network = "nat"
-	network_adapter_type = "e1000e"
+	network_adapter_type = var.vmware_nic_type
 	output_directory = "output-${var.vm_name}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
 	ssh_password = var.ssh_password
