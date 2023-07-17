@@ -5,6 +5,9 @@ Vagrant.configure('2') do |config|
 	NAME = nil unless defined? NAME
 	CPUS = 1 unless defined? CPUS
 	MEMORY = 512 unless defined? MEMORY
+	LOCALE_FORCE = "en_US.UTF-8" unless defined? LOCALE_FORCE
+
+	ENV["LC_ALL"] = LOCALE_FORCE unless ::LOCALE_FORCE.nil?
 
 	[:vmware_workstation, :vmware_fusion, :vmware_desktop].each do |provider|
 		config.vm.provider(provider) do |vm|
@@ -19,10 +22,7 @@ Vagrant.configure('2') do |config|
 		config.vm.provider provider do |vm|
 			vm.cpus = ::CPUS
 			vm.memory = ::MEMORY
-			unless ::NAME.nil?
-				vm.name = ::NAME
-			end
+			vm.name = ::NAME unless ::NAME.nil?
 		end
 	end
 end
-

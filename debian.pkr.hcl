@@ -92,7 +92,7 @@ variable "iso_path" {
 
 variable "iso_checksum_type" {
 	type = string
-	default = "sha1"
+	default = "file"
 }
 
 variable "iso_checksum" {
@@ -107,6 +107,11 @@ variable "iso_name" {
 variable "iso_url" {
 	type = string
 	default = ""
+}
+
+variable "locales_all" {
+	type = bool
+	default = false
 }
 
 variable "memory" {
@@ -128,6 +133,11 @@ variable "parallels_guest_os_type" {
 	type = string
 	default = "debian"
 }
+
+variable "parallels_guest_tools" {
+	type = string
+}
+
 variable "virtualbox_guest_os_type" {
 	type = string
 }
@@ -135,6 +145,10 @@ variable "vmware_guest_os_type" {
 	type = string
 }
 
+variable "vmware_hardware_version" {
+	type = number
+	default = 9
+}
 variable "preseed" {
 	type = string
 	default = "preseed.cfg"
@@ -195,28 +209,30 @@ variable "vm_name" {
 	default = "debian"
 }
 
-local "http_dir" {
-	expression = "http"
+variable "boot_command_pre" {
+	type = list(string)
+	default = []
+}
+
+variable "boot_command_post" {
+	type = list(string)
+	default = []
 }
 
 local "boot_command" {
-	expression = [
-		"<esc><wait>",
-		join(" ", [
-			"install",
-			"auto",
-			"preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/${var.preseed}",
-			"vga=normal",
-			"fb=false",
-			"debian-installer=en_US",
-			"locale=en_US",
-			"keymap=us",
-			"netcfg/get_hostname=vagrant",
-			"netcfg/get_domain=vm",
-			"<enter>"
-		]
-		)
-	]
+	expression = concat(
+		var.boot_command_pre,
+		[
+			"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/${var.preseed} ",
+			"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
+			"netcfg/get_hostname=vagrant netcfg/get_domain=vm "
+		],
+		var.boot_command_post
+	)
+}
+
+local "http_dir" {
+	expression = "http"
 }
 
 local "script_command" {
@@ -238,6 +254,13 @@ local "iso_urls" {
 	]
 }
 
+local "vmware_guest_tools_flavours" {
+	expression = {
+		"vmware" = "",
+	}
+}
+
+
 local environment_vars {
 	expression = [
 		"APT_BACKPORTS=${var.apt_backports}",
@@ -248,6 +271,7 @@ local environment_vars {
 		"GUEST_TOOLS=${var.guest_tools}",
 		"GUEST_TOOLS_DISTRO=${var.guest_tools_distro}",
 		"INSTALL_VAGRANT_KEY=${var.install_vagrant_key}",
+		"LOCALES_ALL=${var.locales_all}",
 		"MOTD=${var.motd}",
 		"SSH_PASSWORD=${var.ssh_password}",
 		"SSH_USERNAME=${var.ssh_username}",
@@ -272,7 +296,7 @@ source "parallels-iso" "parallels" {
 	iso_urls = local.iso_urls
 	memory = var.memory
 	output_directory = "output-${var.vm_name}-parallels-iso"
-	parallels_tools_flavor = "lin"
+	parallels_tools_flavor = var.parallels_guest_tools
 	parallels_tools_guest_path = "prl-tools-lin.iso"
 	parallels_tools_mode = "upload"
 	prlctl = [
@@ -285,9 +309,9 @@ source "parallels-iso" "parallels" {
 		["set", "{{ .Name }}", "--sync-host-printers", "off"],
 		["set", "{{ .Name }}", "--auto-share-camera", "off"],
 		["set", "{{ .Name }}", "--auto-share-bluetooth", "off"],
-		["set", "{{ .Name }}", "--device-del", "sound0"],
 		["set", "{{ .Name }}", "--time-sync", "off"],
-		["set", "{{ .Name }}", "--disable-timezone-sync", "on"]
+		["set", "{{ .Name }}", "--disable-timezone-sync", "on"],
+		["set", "{{ .Name }}", "--autostop", "shutdown"]
 	]
 	prlctl_version_file = ".prlctl_version"
 	shutdown_command = "sudo shutdown -h now"
@@ -317,12 +341,8 @@ source "virtualbox-iso" "virtualbox" {
 	ssh_timeout = "10000s"
 	ssh_username = var.ssh_username
 	vboxmanage = [
-		[
-			"setextradata",
-			"{{ .Name }}",
-			"VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled",
-			"1"
-		]
+		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"]
+
 	]
 	virtualbox_version_file = ".vbox_version"
 	vm_name = var.vm_name
@@ -330,7 +350,9 @@ source "virtualbox-iso" "virtualbox" {
 
 source "vmware-iso" "vmware" {
 	boot_command = local.boot_command
+	cdrom_adapter_type = "sata"
 	cpus = var.cpus
+	disk_adapter_type = "sata"
 	disk_size = var.disk_size
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
@@ -340,15 +362,19 @@ source "vmware-iso" "vmware" {
 	iso_urls = local.iso_urls
 	memory = var.memory
 	network = "nat"
+	network_adapter_type = "e1000e"
 	output_directory = "output-${var.vm_name}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
 	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
 	ssh_username = var.ssh_username
-	tools_upload_flavor = "linux"
+	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
+	version = var.vmware_hardware_version
 	vm_name = var.vm_name
 	vmx_data = {
+		"suspend.disabled" = true,
+		"svga.autodetect" = true,
 		"time.synchronize.continue" = "FALSE"
 		"time.synchronize.restore" = "FALSE"
 		"time.synchronize.resume.disk" = "FALSE"
@@ -356,6 +382,7 @@ source "vmware-iso" "vmware" {
 		"time.synchronize.shrink" = "FALSE"
 		"time.synchronize.tools.enable" = "FALSE"
 		"time.synchronize.tools.startup" = "FALSE"
+		"usb_xhci.present" = true
 	}
 }
 
@@ -387,7 +414,8 @@ build {
 			"script/systemd.sh",
 			"script/grub.sh",
 			"script/lvm.sh",
-			"script/update.sh"
+			"script/update.sh",
+			"script/linux-headers.sh"
 		]
 		skip_clean = true
 	}
@@ -398,6 +426,7 @@ build {
 		pause_before = "10s"
 		scripts = [
 			"script/motd.sh",
+			"script/locales.sh",
 			"script/vagrant.sh",
 			"script/vmware.sh",
 			"script/virtualbox.sh",

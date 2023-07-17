@@ -4,7 +4,7 @@ printf -- '==> %s\n' 'Recording box generation date'
 date > /etc/vagrant_box_build_date
 
 case "$(printf -- '%s' "${MOTD:-}" | tr '[:upper:]' '[:lower:]')" in
-	true|yes|on|1)
+	(true|yes|on|1)
 
 		printf -- '==> %s\n' 'Customizing message of the day'
 		mkdir -p /etc/update-motd.d
@@ -34,4 +34,3 @@ esac
 if [ ! -e /etc/update-motd.d/10-uname ]; then
 	printf -- '%s\n%s\n' '#!/bin/sh' 'uname -snrvm' > /etc/update-motd.d/10-uname
 fi
-
