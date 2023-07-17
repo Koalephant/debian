@@ -344,7 +344,6 @@ source "virtualbox-iso" "virtualbox" {
 	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
-#	nic_type = "virtio"
 	memory = var.memory
 	output_directory = "output-${var.vm_name}-virtualbox-iso"
 	post_shutdown_delay = "1m"
@@ -352,11 +351,11 @@ source "virtualbox-iso" "virtualbox" {
 	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
 	ssh_username = var.ssh_username
-#	vrdp_bind_address = "0.0.0.0"
-#	vboxmanage = [
-#		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"]
-#
-#	]
+	vrdp_bind_address = "0.0.0.0"
+	vboxmanage = [
+		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
+		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"]
+	]
 	virtualbox_version_file = ".vbox_version"
 	vm_name = var.vm_name
 }
