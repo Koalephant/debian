@@ -333,7 +333,7 @@ source "virtualbox-iso" "virtualbox" {
 	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
-	nic_type = 'virtio'
+	nic_type = "virtio"
 	memory = var.memory
 	output_directory = "output-${var.vm_name}-virtualbox-iso"
 	post_shutdown_delay = "1m"
