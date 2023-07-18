@@ -1,1 +1,1 @@
-debian-arm64.pkrvars.hcl
+debian-amd64.pkrvars.hcl
