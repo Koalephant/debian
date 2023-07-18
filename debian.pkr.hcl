@@ -334,6 +334,7 @@ source "parallels-iso" "parallels" {
 
 source "virtualbox-iso" "virtualbox" {
 	boot_command = local.boot_command
+	bundle_iso = true
 	cpus = var.cpus
 	disk_size = var.disk_size
 	guest_additions_mode = "upload"
@@ -354,7 +355,8 @@ source "virtualbox-iso" "virtualbox" {
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
-		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"]
+		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
+#		["storageattach", "{{ .Name }}", "--storagectl", "IDE Controller", "--port", "0", "--device", "1", "--type", "dvddrive", "--medium", "none"]
 	]
 	virtualbox_version_file = ".vbox_version"
 	vm_name = var.vm_name

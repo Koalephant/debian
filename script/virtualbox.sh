@@ -18,7 +18,7 @@ install_from_iso() {
 	umount /mnt/tools
 	rmdir /mnt/tools
 
-	sh "${tempdir}/setup.sh" || retCode="$?"
+	sh "${tempdir}/install.sh" || retCode="$?"
 
 	if [ ${retCode} -eq 1 ]; then
 		printf -- 'VirtualBox Guest Additions installation failed\n' >&2
