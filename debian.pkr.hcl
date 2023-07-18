@@ -469,8 +469,7 @@ build {
 			vagrantfile_template = var.vagrantfile_template
 		}
 		post-processor "shell-local" {
-			inline = ["printf -- '%s\\n%s\\n'", var.box_description, var.version_description]
-			destination = "${var.box_path}/${var.vm_name}/${var.version}/box.version"
+			inline = ["printf -- '%s\\n%s\\n'", var.box_description, var.version_description, "> '${var.box_path}/${var.vm_name}/${var.version}/box.version'"]
 		}
 	}
 

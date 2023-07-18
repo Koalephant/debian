@@ -4,26 +4,30 @@ set -eu
 
 box() {
 	# shellcheck disable=SC2039
-	local DEFAULT_ARCH DEFAULT_RELEASES
+	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS
 	readonly DEFAULT_ARCH="$(arch)"
-	readonly DEFAULT_RELEASES="10 11 12"
+	readonly DEFAULT_RELEASES='10 11 12'
+	readonly DEFAULT_BUILDERS='parallels vmware virtualbox'
+
 
 	# shellcheck disable=SC2039
-	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" release
+	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" release builders="${BUILDERS:-$DEFAULT_BUILDERS}"
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_PRINT_BOX_FILE OP_PRINT_VERSION_FILE OP_PRINT_BOX \
+	local OP_ADD OP_BUILD OP_PRINT_BOX_FILE OP_PRINT_VERSION_FILE OP_PRINT_BOX \
 		OP_DESCRIPTION OP_PRINT_DESCRIPTION_FILE \
-		OP_CHECKSUM OP_CHECK
+		OP_CHECKSUM OP_CHECK OP_BUILDERS
 
 	readonly OP_ADD='add'
-	readonly OP_PRINT_BOX_FILE 'print-box-file'
+	readonly OP_BUILD='build'
+	readonly OP_PRINT_BOX_FILE='print-box-file'
 	readonly OP_PRINT_VERSION_FILE='print-version-file'
 	readonly OP_PRINT_BOX='print-box'
-	readonly OP_DECSRIPTION='description'
+	readonly OP_DESCRIPTION='description'
 	readonly OP_PRINT_DESCRIPTION_FILE='print-description-file'
 	readonly OP_CHECKSUM='checksum'
 	readonly OP_CHECK='check'
+	readonly OP_BUILDERS='builders'
 
 	# shellcheck disable=SC2039
 	local operation='help'
@@ -46,6 +50,44 @@ box() {
 				printf -- '%s' "$1"
 			;;
 		esac
+	}
+
+	get_builder_name() {
+		# shellcheck disable=SC2039
+		local builder="$1"
+		printf -- '%s-iso.*' "${builder}"
+	}
+
+	check_packer_builder() {
+		# shellcheck disable=SC2039
+		local builder="$1"
+		case "${builder}" in
+			(parallels)
+				command -v prlctl >/dev/null
+			;;
+
+			(vmware)
+				command -v vmrun >/dev/null
+			;;
+
+			(virtualbox)
+				command -v vboxmanage >/dev/null
+			;;
+		esac
+	}
+
+	get_packer_builders() {
+		# shellcheck disable=SC2039
+		local builder fmt='%s';
+
+		for builder in ${builders}; do
+			if check_packer_builder "${builder}"; then
+				# shellcheck disable=SC2059
+				printf -- "$fmt" "$(get_builder_name "${builder}")"
+				fmt=',%s'
+			fi
+		done
+		printf -- '\n'
 	}
 
 	get_version_file_template() {
@@ -80,7 +122,8 @@ box() {
 
 		case "${boxOp}" in
 			("${OP_ADD}")
-				log_status 'Adding %s box for debian%d-%s (v%s)' "${provider}" "${release}" "${arch}" "${version}"
+				log_status 'Adding %s box for debian%d-%s
+				} (v%s)' "${provider}" "${release}" "${arch}" "${version}"
 				vagrant box add -f --provider "$(get_provider_name "${provider}")" --name "koalephant/debian${release}-${arch}-test" "${boxFile}"
 			;;
 
@@ -100,21 +143,39 @@ box() {
 
 	do_release_operation() {
 		# shellcheck disable=SC2039
-		local releaseOp="$1" boxOp="$2" release="$3" version provider
-		# shellcheck disable=SC2038
-		version="$(find "box/debian${release}-${arch}" -type d -depth 1 | xargs basename | sort -r | head -n1)"
+		local releaseOp="$1" boxOp="$2" release="$3" version='' provider
 
-		if [ -z "${version}" ]; then
-			log_status 'No Box version found for release debian%d' "${release}" >&2
-			return 1
-		fi
+
+		get_version() {
+			# shellcheck disable=SC2038
+			find "box/debian${release}-${arch}" -type d -depth 1 | xargs basename | sort -r | head -n1
+		}
+
+		read_version() {
+			# shellcheck disable=SC2038
+			if [ -z "${version:-}" ]; then
+				version="$(get_version)"
+			fi
+
+			if [ -z "${version}" ]; then
+				log_status 'No Box version found for release debian%d' "${release}" >&2
+				return 1
+			fi
+		}
 
 		version_description_file() {
 			get_version_file "${release}" "${version}" 'md' 'version-description'
 		}
 
 		case "${releaseOp}" in
+			("${OP_BUILD}")
+				# shellcheck disable=SC2086
+				packer build -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders)" 'debian.pkr.hcl'
+				version=''
+			;;
+
 			("${OP_DESCRIPTION}")
+				read_version
 				log_status 'Generating %s' "$(version_description_file)"
 				 # shellcheck disable=SC2046
 				cat > "$(version_description_file)" \
@@ -123,11 +184,13 @@ box() {
 			;;
 
 			("${OP_PRINT_DESCRIPTION_FILE}")
+				read_version
 				version_description_file
 			;;
 		esac
 
 		if [ -n "${boxOp}" ]; then
+			read_version
 			for provider in $(get_box_providers "${release}" "${version}"); do
 				do_box_operation "$boxOp" "${release}" "${version}" "${provider}"
 			done
@@ -169,6 +232,10 @@ box() {
 				check_boxes 256
 			;;
 
+			("${OP_BUILDERS}")
+				get_packer_builders
+			;;
+
 		esac
 	}
 
@@ -185,11 +252,11 @@ box() {
 				boxOp="${operation}"
 			;;
 
-			("${OP_DESCRIPTION}"|desc)
-				releaseOp="${OP_DESCRIPTION}"
+			("${OP_DESCRIPTION}"|"${OP_BUILD}")
+				releaseOp="${operation}"
 			;;
 
-			("${OP_CHECKSUM}"|"${OP_CHECK}")
+			("${OP_CHECKSUM}"|"${OP_CHECK}"|"${OP_BUILDERS}")
 				globalOp="${operation}"
 			;;
 		esac
