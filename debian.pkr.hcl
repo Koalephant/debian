@@ -406,10 +406,6 @@ build {
 		"source.vmware-iso.vmware"
 	]
 
-	post-processor "shell-local" {
-		command = "printf -- '%s\\n%s\\n' '${var.box_description}' '${var.version_description}' > '${var.box_path}/${var.vm_name}/${var.version}/box.version'"
-	}
-
 	provisioner "shell-local" {
 		inline = [
 			"mkdir -p tools-manual",

@@ -14,14 +14,15 @@ box() {
 	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" release builders="${BUILDERS:-$DEFAULT_BUILDERS}"
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_BUILD OP_PRINT_BOX_FILE OP_PRINT_VERSION_FILE OP_PRINT_BOX \
+	local OP_ADD OP_BUILD OP_PRINT_BOX_FILE OP_PRINT_BOX_DESCRIPTION OP_PRINT_DESCRIPTION OP_PRINT_BOX \
 		OP_DESCRIPTION OP_PRINT_DESCRIPTION_FILE \
 		OP_CHECKSUM OP_CHECK OP_BUILDERS
 
 	readonly OP_ADD='add'
 	readonly OP_BUILD='build'
 	readonly OP_PRINT_BOX_FILE='print-box-file'
-	readonly OP_PRINT_VERSION_FILE='print-version-file'
+	readonly OP_PRINT_DESCRIPTION='print-description'
+	readonly OP_PRINT_BOX_DESCRIPTION='print-box-description'
 	readonly OP_PRINT_BOX='print-box'
 	readonly OP_DESCRIPTION='description'
 	readonly OP_PRINT_DESCRIPTION_FILE='print-description-file'
@@ -56,6 +57,15 @@ box() {
 		# shellcheck disable=SC2039
 		local builder="$1"
 		printf -- '%s-iso.*' "${builder}"
+	}
+
+	read_packer_var () {
+		packer console -var-file "debian${release}-${arch}.pkrvars.hcl" 'debian.pkr.hcl'
+	}
+
+	get_packer_var() {
+		 # shellcheck disable=SC2016
+		 printf -- '"${var.%s}"' "$1"  | read_packer_var
 	}
 
 	check_packer_builder() {
@@ -130,8 +140,8 @@ box() {
 				printf -- '%s\n' "${boxFile}"
 			;;
 
-			("${OP_PRINT_VERSION_FILE}")
-				get_version_file "${release}" "${version}" 'version' "${provider}"
+			("${OP_PRINT_BOX_DESCRIPTION}")
+				cat "$(get_version_file "${release}" "${version}" 'version' "${provider}")"
 			;;
 
 			("${OP_PRINT_BOX}")
@@ -145,21 +155,26 @@ box() {
 		local releaseOp="$1" boxOp="$2" release="$3" version='' provider
 
 
-		get_version() {
-			# shellcheck disable=SC2038
-			find "box/debian${release}-${arch}" -type d -depth 1 | xargs basename | sort -r | head -n1
-		}
+#		get_version() {
+#			# shellcheck disable=SC2038
+#			find "box/debian${release}-${arch}" -type d -depth 1 | xargs basename | sort -r | head -n1
+#		}
 
 		read_version() {
 			# shellcheck disable=SC2038
 			if [ -z "${version:-}" ]; then
-				version="$(get_version)"
+				version="$(get_packer_var 'version')"
 			fi
 
 			if [ -z "${version}" ]; then
 				log_status 'No Box version found for release debian%d' "${release}" >&2
 				return 1
 			fi
+		}
+
+		read_description() {
+			printf -- '"${var.box_description}\\n${var.version_description}"' | read_packer_var
+			do_release_operation '' "${OP_PRINT_BOX_DESCRIPTION}" "${release}" "${version}" "${provider}"
 		}
 
 		version_description_file() {
@@ -173,13 +188,15 @@ box() {
 				version=''
 			;;
 
+			("${OP_PRINT_DESCRIPTION}")
+				read_description
+			;;
+
 			("${OP_DESCRIPTION}")
 				read_version
-				log_status 'Generating %s' "$(version_description_file)"
-				 # shellcheck disable=SC2046
-				cat > "$(version_description_file)" \
-					"$(get_version_file "${release}" "${version}" 'version' 'box')" \
-					 $(do_release_operation '' "${OP_PRINT_VERSION_FILE}" "${release}" "${version}" "${provider}")
+				log_status 'Generating version description for debian%s-%s' "${release}" "${arch}"
+				# shellcheck disable=SC2046,SC2016
+				read_description > "$(version_description_file)"
 			;;
 
 			("${OP_PRINT_DESCRIPTION_FILE}")
@@ -247,11 +264,11 @@ box() {
 				exit 0
 			;;
 
-			("${OP_ADD}"|"${OP_PRINT_BOX}"|"${OP_PRINT_BOX_FILE}"|"${OP_PRINT_VERSION_FILE}")
+			("${OP_ADD}"|"${OP_PRINT_BOX}"|"${OP_PRINT_BOX_FILE}"|"${OP_PRINT_BOX_DESCRIPTION}")
 				boxOp="${operation}"
 			;;
 
-			("${OP_DESCRIPTION}"|"${OP_BUILD}")
+			("${OP_DESCRIPTION}"|"${OP_PRINT_DESCRIPTION}"|"${OP_BUILD}")
 				releaseOp="${operation}"
 			;;
 
