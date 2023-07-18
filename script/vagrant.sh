@@ -13,7 +13,7 @@ sed -i -e 's/^#UseDNS no/UseDNS no/' /etc/ssh/sshd_config
 # Packer passes boolean user variables through as '1', but this might change in
 # the future, so also check for 'true'.
 case "$(printf -- '%s' "${INSTALL_VAGRANT_KEY:-}" | tr '[:upper:]' '[:lower:]')" in
-	true|yes|on|1)
+	(true|yes|on|1)
 		printf -- '==> %s\n' 'Installing Vagrant SSH key'
 		mkdir -pm 700 "${SSH_USER_HOME}/.ssh"
 		# https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub

@@ -4,7 +4,7 @@ SSH_USER="${SSH_USERNAME:-vagrant}"
 
 if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 	case "$(printf "%s" "${GUEST_TOOLS:-}" | tr '[:upper:]' '[:lower:]')" in
-		true|yes|on|1)
+		(true|yes|on|1)
 			printf -- '==> Installing Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
 		;;
 
@@ -28,4 +28,3 @@ if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 	printf -- '- Parallels Tools version %s\n' "$(prltoolsd  -V | cut -f 3 -d ' ')" > /tmp/guest-additions-version.txt
 	rm -frv "/home/${SSH_USER}/prl-tools-lin.iso" "/home/${SSH_USER}/tools-manual" "/home/${SSH_USER}/.prlctl_version"
 fi
-

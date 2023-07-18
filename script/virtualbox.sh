@@ -4,21 +4,28 @@ SSH_USER="${SSH_USERNAME:-vagrant}"
 
 install_from_iso() {
 	# shellcheck disable=SC2039
-	local iso="$1"
+	local iso="$1" tempdir
 
 	apt-get install -y "linux-headers-$(uname -r)" build-essential perl dkms
 	mkdir -p /mnt/tools
 	mount -o loop,ro "$iso" /mnt/tools
 	retCode=0
 
-	/mnt/tools/VBoxLinuxAdditions.run --nox11 || retCode=$?
+	tempdir="$(mktemp -d)"
+
+	/mnt/tools/VBoxLinuxAdditions.run --nox11 --noexec --target "$tempdir"
+
+	umount /mnt/tools
+	rmdir /mnt/tools
+
+	sh "${tempdir}/setup.sh" || retCode="$?"
 
 	if [ ${retCode} -eq 1 ]; then
 		printf -- 'VirtualBox Guest Additions installation failed\n' >&2
 		exit 1
 	fi
-	umount /mnt/tools
-	rmdir /mnt/tools
+
+	rm -rf "${tempdir}"
 }
 
 if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
@@ -29,7 +36,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 
 		(*)
 			printf -- '==> Skipping Guest Tools install for %s\n' "${PACKER_BUILDER_TYPE}"
-			printf -- '- VirtualBox Guest Additions not installed' > /tmp/guest-additions-version.txt
+			printf -- '- VirtualBox Guest Additions not installed\n' > /tmp/guest-additions-version.txt
 			exit 0
 		;;
 	esac
