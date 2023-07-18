@@ -1,6 +1,5 @@
 vm_name = "debian11-i386"
 iso_checksum = "http://cdimage.debian.org/cdimage/archive/11.7.0/i386/iso-dvd/SHA256SUMS"
-iso_checksum_type = "sha256"
 iso_name = "debian-11.7.0-i386-DVD-1.iso"
 iso_url = "http://cdimage.debian.org/cdimage/archive/11.7.0/i386/iso-dvd/debian-11.7.0-i386-DVD-1.iso"
 vmware_guest_os_type = "debian11"

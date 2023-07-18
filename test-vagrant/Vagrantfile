@@ -33,7 +33,7 @@ Vagrant.configure(2) do |config|
 					vm.vmx[:displayname] = vmname
 				end
 			end
-			
+
 			machine.vm.provider :parallels do |vm|
 				vm.name = vmname
 			end
