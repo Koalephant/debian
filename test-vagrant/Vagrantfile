@@ -3,11 +3,25 @@
 
 NAME = 'debian-test-vagrant'
 
-
+def archname()
+	arch = `uname -m`.chomp
+	case arch
+	when 'x86_64'
+		return 'amd64'
+	when 'i686'
+		return 'i386'
+	when 'aarch64_be', 'aarch64', 'armv8b', 'armv8l'
+		return 'arm64'
+	else
+		return arch
+	end
+end
 
 Vagrant.configure(2) do |config|
 
-	arch=`arch`.chomp
+	config.vagrant.plugins = ['vagrant-parallels', 'vagrant-vmware-desktop']
+
+	arch=archname
 
 	(10..12).each do |version|
 		basename = "debian#{version}"

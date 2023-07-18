@@ -3,6 +3,7 @@
 SSH_USER="${SSH_USERNAME:-vagrant}"
 
 install_from_iso() {
+	# shellcheck disable=SC2039
 	local iso="$1"
 
 	apt-get install -y "linux-headers-$(uname -r)" build-essential perl dkms
@@ -10,7 +11,7 @@ install_from_iso() {
 	mount -o loop,ro "$iso" /mnt/tools
 	retCode=0
 
-	sh /mnt/tools/VBoxLinuxAdditions.run --nox11 || retCode=$?
+	/mnt/tools/VBoxLinuxAdditions.run --nox11 || retCode=$?
 
 	if [ ${retCode} -eq 1 ]; then
 		printf -- 'VirtualBox Guest Additions installation failed\n' >&2

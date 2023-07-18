@@ -122,8 +122,7 @@ box() {
 
 		case "${boxOp}" in
 			("${OP_ADD}")
-				log_status 'Adding %s box for debian%d-%s
-				} (v%s)' "${provider}" "${release}" "${arch}" "${version}"
+				log_status 'Adding %s box for debian%d-%s (v%s)' "${provider}" "${release}" "${arch}" "${version}"
 				vagrant box add -f --provider "$(get_provider_name "${provider}")" --name "koalephant/debian${release}-${arch}-test" "${boxFile}"
 			;;
 
