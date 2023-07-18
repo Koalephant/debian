@@ -31,8 +31,10 @@ box() {
 	readonly OP_CHECK='check'
 	readonly OP_BUILDERS='builders'
 
+	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
+
 	# shellcheck disable=SC2039
-	local operation='help'
+	local operation
 
 	log_status() {
 		# shellcheck disable=SC2039
@@ -256,15 +258,32 @@ box() {
 		esac
 	}
 
+	usage() {
+		cat <<-EOT
+			usage: box.sh operations...
+
+			Operations:
+
+			 help                      Show this help
+			 ${OP_BUILD}                     Build all boxes and description files. The same as specifying '${OP_BOXES} ${OP_DESCRIPTION}'
+			 ${OP_ADD}                       Add box files to Vagrant with '-test' suffix for use in the 'test-vagrant' directory Vagrant environment
+			 ${OP_PRINT_BOX}                 Show the box file names relative to the box directory
+			 ${OP_PRINT_BOX_FILE}            Show the box file name relative
+			 ${OP_PRINT_BOX_DESCRIPTION}     Show the descriptions for selected boxes
+			 ${OP_DESCRIPTION}               Record the descriptions for selected releases in 'version-description.md' files
+			 ${OP_PRINT_DESCRIPTION}         Show the descriptions for selected releases
+			 ${OP_BOXES}                     Generate the boxes using 'packer'
+			 ${OP_CHECKSUM}                  Generate checksums
+			 ${OP_CHECK}                     Verify box files against existing checksums
+			 ${OP_BUILDERS}                  List the selected and available builders
+
+		EOT
+	}
+
 	do_operation() {
 		# shellcheck disable=SC2039
 		local operation="$1" globalOp="" releaseOp="" boxOp=""
 		case "${operation}" in
-			(help|-h|--help)
-				print_usage
-				exit 0
-			;;
-
 			("${OP_BUILD}")
 				do_operation "${OP_BOXES}"
 				do_operation "${OP_DESCRIPTION}"
@@ -280,6 +299,11 @@ box() {
 
 			("${OP_CHECKSUM}"|"${OP_CHECK}"|"${OP_BUILDERS}")
 				globalOp="${operation}"
+			;;
+
+			(help|-h|--help|*)
+				usage
+				exit 0
 			;;
 		esac
 
