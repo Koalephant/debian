@@ -7,43 +7,25 @@ NAME = 'debian-test-vagrant'
 
 Vagrant.configure(2) do |config|
 
-	# (10..12).each do |version|
-	#
-	# end
+	arch=`arch`.chomp
 
-	config.vm.define "debian10-amd64" do |machine|
-		machine.vm.box = "koalephant/debian10-amd64"
-	end
+	(10..12).each do |version|
+		basename = "debian#{version}"
+		config.vm.define basename do |machine|
+			machine.vm.box = "koalephant/#{basename}-#{arch}-test"
+			vmname = "Debian #{version} Test VM (#{arch})"
+			[:vmware_workstation, :vmware_fusion, :vmware_desktop].each do |provider|
+				machine.vm.provider(provider) do |vm|
+					vm.vmx[:displayname] = vmname
+				end
+			end
 
-	config.vm.define "debian10-arm64" do |machine|
-		machine.vm.box = "koalephant/debian10-arm64"
-	end
+			[:parallels, :virtualbox].each do |provider|
+				machine.vm.provider provider do |vm|
+					vm.name = vmname
+				end
+			end
 
-	config.vm.define "debian10-i386" do |machine|
-		machine.vm.box = "koalephant/debian10-i386"
-	end
-
-	config.vm.define "debian11-amd64" do |machine|
-		machine.vm.box = "koalephant/debian11-amd64"
-	end
-
-	config.vm.define "debian11-arm64" do |machine|
-		machine.vm.box = "koalephant/debian11-arm64"
-	end
-
-	config.vm.define "debian11-i386" do |machine|
-		machine.vm.box = "koalephant/debian11-i386"
-	end
-
-	config.vm.define "debian12-amd64" do |machine|
-		machine.vm.box = "koalephant/debian12-amd64"
-	end
-
-	config.vm.define "debian12-arm64" do |machine|
-		machine.vm.box = "koalephant/debian12-arm64-test"
-	end
-
-	config.vm.define "debian12-i386" do |machine|
-		machine.vm.box = "koalephant/debian12-i386"
+		end
 	end
 end

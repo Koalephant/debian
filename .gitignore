@@ -10,7 +10,6 @@ Makefile.local
 box/
 .DS_Store
 .tmpatlas/
-Makefile
 *.mk
 configure.options
 tools-manual/
