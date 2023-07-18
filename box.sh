@@ -14,11 +14,12 @@ box() {
 	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" release builders="${BUILDERS:-$DEFAULT_BUILDERS}"
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_BUILD OP_PRINT_BOX_FILE OP_PRINT_BOX_DESCRIPTION OP_PRINT_DESCRIPTION OP_PRINT_BOX \
+	local OP_ADD OP_BOXES OP_BUILD OP_PRINT_BOX_FILE OP_PRINT_BOX_DESCRIPTION OP_PRINT_DESCRIPTION OP_PRINT_BOX \
 		OP_DESCRIPTION OP_PRINT_DESCRIPTION_FILE \
 		OP_CHECKSUM OP_CHECK OP_BUILDERS
 
 	readonly OP_ADD='add'
+	readonly OP_BOXES='boxes'
 	readonly OP_BUILD='build'
 	readonly OP_PRINT_BOX_FILE='print-box-file'
 	readonly OP_PRINT_DESCRIPTION='print-description'
@@ -182,7 +183,7 @@ box() {
 		}
 
 		case "${releaseOp}" in
-			("${OP_BUILD}")
+			("${OP_BOXES}")
 				# shellcheck disable=SC2086
 				packer build -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders)" 'debian.pkr.hcl'
 				version=''
@@ -264,11 +265,16 @@ box() {
 				exit 0
 			;;
 
+			("${OP_BUILD}")
+				do_operation "${OP_BOXES}"
+				do_operation "${OP_DESCRIPTION}"
+			;;
+
 			("${OP_ADD}"|"${OP_PRINT_BOX}"|"${OP_PRINT_BOX_FILE}"|"${OP_PRINT_BOX_DESCRIPTION}")
 				boxOp="${operation}"
 			;;
 
-			("${OP_DESCRIPTION}"|"${OP_PRINT_DESCRIPTION}"|"${OP_BUILD}")
+			("${OP_DESCRIPTION}"|"${OP_PRINT_DESCRIPTION}"|"${OP_BOXES}")
 				releaseOp="${operation}"
 			;;
 
