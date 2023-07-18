@@ -406,6 +406,10 @@ build {
 		"source.vmware-iso.vmware"
 	]
 
+	post-processor "shell-local" {
+		command = "printf -- '%s\\n%s\\n' '${var.box_description}' '${var.version_description}' > '${var.box_path}/${var.vm_name}/${var.version}/box.version'"
+	}
+
 	provisioner "shell-local" {
 		inline = [
 			"mkdir -p tools-manual",
@@ -467,9 +471,6 @@ build {
 			keep_input_artifact = false
 			output = "${var.box_path}/${var.vm_name}/${var.version}/${source.name}.box"
 			vagrantfile_template = var.vagrantfile_template
-		}
-		post-processor "shell-local" {
-			inline = ["printf -- '%s\\n%s\\n'", var.box_description, var.version_description, "> '${var.box_path}/${var.vm_name}/${var.version}/box.version'"]
 		}
 	}
 

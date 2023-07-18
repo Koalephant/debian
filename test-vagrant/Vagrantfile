@@ -33,13 +33,15 @@ Vagrant.configure(2) do |config|
 					vm.vmx[:displayname] = vmname
 				end
 			end
-
-			[:parallels, :virtualbox].each do |provider|
-				machine.vm.provider provider do |vm|
-					vm.name = vmname
-				end
+			machine.vm.provider :parallels do |vm|
+				vm.name = vmname
 			end
 
+			machine.vm.provider :virtualbox do |vm|
+				vm.name = vmname
+				vm.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', '0', '--device', '1', '--type', 'dvddrive']
+
+			end
 		end
 	end
 end
