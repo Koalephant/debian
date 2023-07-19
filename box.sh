@@ -286,6 +286,12 @@ box() {
 			;;
 
 			("${OP_CLOUD_CREATE}")
+				if ! vagrant_cloud_read_box_request "version/${version}" "${release}" > /dev/null; then
+					# shellcheck disable=SC2016
+					log_message 'Vagrant Cloud box or version does not exist, create it with `release %s`' "${OP_CLOUD_CREATE}"
+					exit 1
+				fi
+
 				if ! vagrant_cloud_read_box_request "version/${version}/provider/$(map_provider_name "$provider")" "${release}" > /dev/null; then
 					log_message 'Creating provider %s for Vagrant Cloud box %s version %s' "${provider}" "debian${release}-${arch}" "${version}"
 					vagrant_cloud_make_box_request "version/${version}/providers" "${release}" "$(get_cloud_provider_data)" >> "debian${release}-${arch}.curl.log"
