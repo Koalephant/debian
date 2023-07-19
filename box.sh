@@ -47,7 +47,7 @@ box() {
 
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE
+	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE OP_CLOUD_RELEASE OP_CLOUD_REVOKE
 
 	readonly OP_ADD='add'
 	readonly OP_BUILD='build'
@@ -59,6 +59,8 @@ box() {
 	readonly OP_BUILDERS='builders'
 	readonly OP_PREPARE='prepare'
 	readonly OP_CLOUD_CREATE='cloud-create'
+	readonly OP_CLOUD_RELEASE='cloud-release'
+	readonly OP_CLOUD_REVOKE='cloud-revoke'
 
 	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
 
@@ -407,6 +409,28 @@ box() {
 				do_box_loop "${OP_CLOUD_CREATE}" "${release}"
 			;;
 
+			("${OP_CLOUD_RELEASE}")
+				#TODO: check response to see if `status` is 'active'
+				if ! vagrant_cloud_read_box_request "version/${version}" "${release}" > /dev/null; then
+					# shellcheck disable=SC2016
+					log_message 'Vagrant Cloud box or version does not exist, create it with `release %s`' "${OP_CLOUD_CREATE}"
+					exit 1
+				fi
+
+				vagrant_cloud_make_box_request "version/${version}/release" "${release}" "" 'PUT' >> "debian${release}-${arch}.curl.log"
+			;;
+
+			("${OP_CLOUD_REVOKE}")
+				#TODO: check response to see if `status` is 'active'
+				if ! vagrant_cloud_read_box_request "version/${version}" "${release}" > /dev/null; then
+					# shellcheck disable=SC2016
+					log_message 'Vagrant Cloud box or version does not exist, no need to revoke it'
+					exit 0
+				fi
+
+				vagrant_cloud_make_box_request "version/${version}/revoke" "${release}" "" 'PUT' >> "debian${release}-${arch}.curl.log"
+			;;
+
 			("${OP_DESCRIPTION}")
 				# shellcheck disable=SC2046,SC2016
 				run_command_redirect_output "${descriptionFile}" read_description
@@ -520,7 +544,9 @@ box() {
 
 			 release ${OP_BUILD}               Build boxes & description file for each release
 			 release ${OP_CHECKSUM}            Generate a checksum of release .box files
-			 release ${OP_CLOUD_CREATE}        Create the Release as a Vagrant Cloud Box entity
+			 release ${OP_CLOUD_CREATE}        Create the Release as Vagrant Cloud 'box' and 'version' entities
+			 release ${OP_CLOUD_RELEASE}       Make the Vagrant Cloud 'version' accessible
+			 release ${OP_CLOUD_REVOKE}        Make the Vagrant Cloud 'version' inaccessible
 			 release ${OP_DESCRIPTION}         Write description file for each release
 			 release ${OP_PRINT_BOX}           Show the box file names for the selected releases, relative to the box directory
 			 release ${OP_PRINT_DESCRIPTION}   Show the descriptions for selected releases
@@ -536,7 +562,7 @@ box() {
 			 box ${OP_ADD}                     Add box files to Vagrant with '-test' suffix for use in the 'test-vagrant' directory Vagrant environment
 			 box ${OP_BUILD}                   Build boxes
 			 box ${OP_CHECKSUM}                Print checksum of .box files
-			 box ${OP_CLOUD_CREATE}            Add boxes to Vagrant Cloud as Provider entities
+			 box ${OP_CLOUD_CREATE}            Add boxes to Vagrant Cloud as 'provider' entities
 			 box ${OP_PRINT_BOX}               Show the .box file names for the selected releases, relative to each release directory
 			 box ${OP_PRINT_DESCRIPTION}       Show the descriptions for selected boxes
 
