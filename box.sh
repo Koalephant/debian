@@ -26,15 +26,18 @@ box() {
 	}
 
 	# shellcheck disable=SC2039
-	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS DEFAULT_BOX_DIR
+	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS DEFAULT_BOX_DIR DEFAULT_HOSTED_URL_BASE
 	readonly DEFAULT_ARCH="$(get_mapped_arch)"
 	readonly DEFAULT_RELEASES='10 11 12'
 	readonly DEFAULT_BUILDERS='parallels vmware virtualbox'
 	readonly DEFAULT_BOX_DIR="${0%/*}/boxes"
+	readonly DEFAULT_HOSTED_URL_BASE='https://boxes.storage.koalephant.com'
 
 
 	# shellcheck disable=SC2039
-	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" release builders="${BUILDERS:-$DEFAULT_BUILDERS}" boxDir="${BOX_DIR:-$DEFAULT_BOX_DIR}" dryRun="${DRY_RUN:-false}"
+	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" builders="${BUILDERS:-$DEFAULT_BUILDERS}" boxDir="${BOX_DIR:-$DEFAULT_BOX_DIR}" dryRun="${DRY_RUN:-false}" verbose="${VERBOSE:-false}" debug="${DEBUG:-false}" hostedUrlBase="${HOSTED_URL_BASE:-$DEFAULT_HOSTED_URL_BASE}"
+
+
 
 	# shellcheck disable=SC2039
 	local OP_GROUP_GLOBAL OP_GROUP_BOX OP_GROUP_RELEASE
@@ -44,7 +47,7 @@ box() {
 
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE
+	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE
 
 	readonly OP_ADD='add'
 	readonly OP_BUILD='build'
@@ -55,10 +58,11 @@ box() {
 	readonly OP_VERIFY='verify'
 	readonly OP_BUILDERS='builders'
 	readonly OP_PREPARE='prepare'
+	readonly OP_CLOUD_CREATE='cloud-create'
 
 	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
 
-	log_status() {
+	log_message() {
 		# shellcheck disable=SC2039
 		local format="$1"
 		shift
@@ -67,14 +71,32 @@ box() {
 		printf -- "${format}\n" "$@" >&2
 	}
 
+	log_verbose() {
+		if [ "${verbose}" = 'true' ]; then
+			log_message "$@"
+		fi
+	}
+
+	log_debug() {
+		if [ "${debug}" = 'true' ]; then
+			log_message "$@"
+		fi
+	}
+
 	run_command() {
 		if [ "${dryRun}" = 'true' ]; then
 			printf -- '%s\n' "$*" > /dev/tty
 		else
 			# shellcheck disable=SC2016
-			#printf -- 'Running command `%s`\n' "$*" >&2
+			log_debug 'Running command `%s`' "$*"
 			"$@"
 		fi
+	}
+
+	run_command_always () {
+		# shellcheck disable=SC2016
+		log_debug 'Running command `%s`' "$*"
+		"$@"
 	}
 
 	run_command_redirect_output() {
@@ -156,7 +178,7 @@ box() {
 		# shellcheck disable=SC2016
 		version="$(printf -- '"${var.version}"' | read_packer_var "${release}")"
 		if [ -z "${version}" ]; then
-			log_status 'No Box version found for release debian%d' "${release}" >&2
+			log_message 'No Box version found for release debian%d' "${release}" >&2
 			return 1
 		fi
 
@@ -167,7 +189,7 @@ box() {
 		# shellcheck disable=SC2039
 		local dir="$1" filename="${2}"
 		shift 2
-		log_status 'Generating Box checksums using SHA256'
+		log_verbose 'Generating Box checksums using SHA256'
 		(
 			run_command cd "$dir"
 			if [ -z "${filename}" ]; then
@@ -182,11 +204,56 @@ box() {
 		# shellcheck disable=SC2039
 		local dir="$1"
 		shift
-		log_status 'Verifying Box checksums using SHA256'
+		log_verbose 'Verifying Box checksums using SHA256'
 		(
 			run_command cd "${dir}"
 			run_command shasum -c "boxes.sha256sum"
 		)
+	}
+
+	vagrant_cloud_make_request() {
+		# shellcheck disable=SC2039
+		local path="$1" data="$2" method="${3:-POST}"
+
+		run_command curl \
+			--silent --fail \
+			--header 'Content-Type: application/json' \
+			--header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+			--request "${method}" \
+			--data "${data}" \
+			"https://app.vagrantup.com/api/v1/${path}"
+	}
+
+	vagrant_cloud_read_request() {
+		# shellcheck disable=SC2039
+		local path="$1"
+
+		run_command_always curl \
+			--silent --fail \
+			--header "Authorization: Bearer ${VAGRANT_CLOUD_TOKEN}" \
+			--request 'GET' \
+			"https://app.vagrantup.com/api/v1/${path}"
+	}
+
+	vagrant_cloud_make_box_request() {
+		# shellcheck disable=SC2039
+		local path="$1" release="$2"
+		shift 2
+		vagrant_cloud_make_request "box/${VAGRANT_CLOUD_ORG}/debian${release}-${arch}/${path}" "$@"
+	}
+
+	vagrant_cloud_read_box_request() {
+		# shellcheck disable=SC2039
+		local path="$1" release="$2"
+		shift 2
+		vagrant_cloud_read_request "box/${VAGRANT_CLOUD_ORG}/debian${release}-${arch}/${path}"
+	}
+
+
+	get_box_url() {
+		# shellcheck disable=SC2039
+		local release="$1" version="$2" provider="$3"
+		printf -- '%s/debian%d-%s/%s/%s.box' "${hostedUrlBase}" "${release}" "${arch}" "${version}" "${provider}"
 	}
 
 	do_box_operation() {
@@ -197,9 +264,20 @@ box() {
 		versionFileName="${provider}.version"
 		boxFile="${releaseDir}/${boxFileName}"
 
+		print_checksum() {
+			checksum_boxes "${releaseDir}" '' "${boxFileName}" | cut -c 1-64
+		}
+
+		get_cloud_provider_data() {
+			jq --compact-output --null-input \
+				--arg boxChecksum "$(print_checksum)" \
+				--arg name "$(map_provider_name "$provider")" --arg url "$(get_box_url "$release" "${version}" "${provider}")" \
+				 '{"provider": {"checksum": $boxChecksum, "checksum_type": "sha256", "name": $name, "url": $url}}'
+		}
+
 		case "${operation}" in
 			("${OP_ADD}")
-				log_status 'Adding %s box for debian%d-%s (v%s)' "${provider}" "${release}" "${arch}" "${version}"
+				log_message 'Adding %s box for debian%d-%s (v%s)' "${provider}" "${release}" "${arch}" "${version}"
 				run_command vagrant box add -f --provider "$(map_provider_name "${provider}")" --name "koalephant/debian${release}-${arch}-test" "${boxFile}"
 			;;
 
@@ -207,8 +285,18 @@ box() {
 				run_command packer build -var "box_path=${boxDir}" -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders "${provider}")" 'debian.pkr.hcl'
 			;;
 
+			("${OP_CLOUD_CREATE}")
+				if ! vagrant_cloud_read_box_request "version/${version}/provider/$(map_provider_name "$provider")" "${release}" > /dev/null; then
+					log_message 'Creating provider %s for Vagrant Cloud box %s version %s' "${provider}" "debian${release}-${arch}" "${version}"
+					vagrant_cloud_make_box_request "version/${version}/providers" "${release}" "$(get_cloud_provider_data)" >> "debian${release}-${arch}.curl.log"
+				else
+					log_message 'Updating provider %s for Vagrant Cloud box %s version %s' "${provider}" "debian${release}-${arch}" "${version}"
+					vagrant_cloud_make_box_request "version/${version}/provider/$(map_provider_name "$provider")" "${release}" "$(get_cloud_provider_data)" 'PUT' >> "debian${release}-${arch}.curl.log"
+				fi
+			;;
+
 			("${OP_CHECKSUM}")
-				checksum_boxes "${releaseDir}" '' "${boxFile}"
+				print_checksum
 			;;
 
 			("${OP_PRINT_BOX}")
@@ -235,7 +323,9 @@ box() {
 		for release; do
 			version="$(get_release_version "${release}")"
 			for provider in ${builders}; do
-				do_box_operation "${operation}" "${release}" "${version}" "${provider}"
+				if check_packer_builder "${provider}"; then
+					do_box_operation "${operation}" "${release}" "${version}" "${provider}"
+				fi
 			done
 		done
 	}
@@ -250,10 +340,33 @@ box() {
 		descriptionFile="${releaseDir}/version-description.md"
 
 
+		read_box_description() {
+			# shellcheck disable=SC2016
+			printf -- '"${var.box_description}"' | read_packer_var "${release}"
+		}
+
+		read_version_description() {
+			# shellcheck disable=SC2016
+			printf -- '"${var.version_description}"' | read_packer_var "${release}"
+			do_box_loop "${OP_PRINT_DESCRIPTION}" "${release}"
+		}
+
 		read_description() {
 			# shellcheck disable=SC2016
-			printf -- '"${var.box_description}\\n${var.version_description}"' | read_packer_var "${release}"
-			do_box_loop "${OP_PRINT_DESCRIPTION}" "${release}"
+			read_box_description
+			read_version_description
+		}
+
+		get_cloud_box_data() {
+			jq --compact-output --null-input --arg boxOwner "${VAGRANT_CLOUD_ORG}" \
+				--arg boxName "debian${release}-${arch}" --arg boxDescription "$(read_box_description)" \
+				'{"box": {"username": $boxOwner, "name": $boxName, "short_description": $boxDescription, "is_private": false}}'
+		}
+
+		get_cloud_version_data() {
+			jq  --compact-output --null-input \
+				--arg boxVersion "${version}" --arg versionDescription "$(read_version_description)" \
+				'{"version": {"version": $boxVersion, "description": $versionDescription}}'
 		}
 
 		case "${operation}" in
@@ -266,6 +379,26 @@ box() {
 			("${OP_CHECKSUM}")
 				# shellcheck disable=SC2046
 				checksum_boxes "${releaseDir}" 'boxes' $(printf -- '%s.box ' ${builders})
+			;;
+
+			("${OP_CLOUD_CREATE}")
+				if ! vagrant_cloud_read_box_request '' "${release}" > /dev/null; then
+					log_message 'Creating Vagrant Cloud box %s' "debian${release}-${arch}"
+					vagrant_cloud_make_request 'boxes' "$(get_cloud_box_data)" > "debian${release}-${arch}.curl.log"
+				else
+					log_message 'Updating Vagrant Cloud box %s' "debian${release}-${arch}"
+					vagrant_cloud_make_box_request '' "${release}" "$(get_cloud_box_data)" 'PUT' > "debian${release}-${arch}.curl.log"
+				fi
+
+				if ! vagrant_cloud_read_box_request "version/${version}" "${release}" > /dev/null; then
+					log_message 'Creating Vagrant Cloud box %s version %s' "debian${release}-${arch}" "${version}"
+					vagrant_cloud_make_box_request 'versions' "${release}" "$(get_cloud_version_data)" >> "debian${release}-${arch}.curl.log"
+				else
+					log_message 'Updating Vagrant Cloud box %s version %s' "debian${release}-${arch}" "${version}"
+					vagrant_cloud_make_box_request "version/${version}" "${release}" "$(get_cloud_version_data)" 'PUT' >> "debian${release}-${arch}.curl.log"
+				fi
+
+				do_box_loop "${OP_CLOUD_CREATE}" "${release}"
 			;;
 
 			("${OP_DESCRIPTION}")
@@ -381,6 +514,7 @@ box() {
 
 			 release ${OP_BUILD}               Build boxes & description file for each release
 			 release ${OP_CHECKSUM}            Generate a checksum of release .box files
+			 release ${OP_CLOUD_CREATE}        Create the Release as a Vagrant Cloud Box entity
 			 release ${OP_DESCRIPTION}         Write description file for each release
 			 release ${OP_PRINT_BOX}           Show the box file names for the selected releases, relative to the box directory
 			 release ${OP_PRINT_DESCRIPTION}   Show the descriptions for selected releases
@@ -396,6 +530,7 @@ box() {
 			 box ${OP_ADD}                     Add box files to Vagrant with '-test' suffix for use in the 'test-vagrant' directory Vagrant environment
 			 box ${OP_BUILD}                   Build boxes
 			 box ${OP_CHECKSUM}                Print checksum of .box files
+			 box ${OP_CLOUD_CREATE}            Add boxes to Vagrant Cloud as Provider entities
 			 box ${OP_PRINT_BOX}               Show the .box file names for the selected releases, relative to each release directory
 			 box ${OP_PRINT_DESCRIPTION}       Show the descriptions for selected boxes
 
