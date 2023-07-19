@@ -36,7 +36,6 @@ variable "apt_mirror" {
 
 variable "box_path" {
 	type = string
-	default = "box"
 }
 
 variable "cpus" {
