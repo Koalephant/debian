@@ -4,3 +4,4 @@ iso/
 boxes/
 tools-manual/prl-tools-lin-16.iso
 tools-manual/open-vm-tools
+test-vagrant/.vagrant/
