@@ -26,16 +26,17 @@ box() {
 	}
 
 	# shellcheck disable=SC2039
-	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS DEFAULT_BOX_DIR DEFAULT_HOSTED_URL_BASE
+	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS DEFAULT_BOX_DIR DEFAULT_HOSTED_URL_BASE DEFAULT_HOSTED_RSYNC_BASE
 	readonly DEFAULT_ARCH="$(get_mapped_arch)"
 	readonly DEFAULT_RELEASES='10 11 12'
 	readonly DEFAULT_BUILDERS='parallels vmware virtualbox'
 	readonly DEFAULT_BOX_DIR="${0%/*}/boxes"
 	readonly DEFAULT_HOSTED_URL_BASE='https://boxes.storage.koalephant.com'
+	readonly DEFAULT_HOSTED_RSYNC_BASE='dal-web-01.koalephant.net:/srv/www/boxes.storage.koalephant.com'
 
 
 	# shellcheck disable=SC2039
-	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" builders="${BUILDERS:-$DEFAULT_BUILDERS}" boxDir="${BOX_DIR:-$DEFAULT_BOX_DIR}" dryRun="${DRY_RUN:-false}" verbose="${VERBOSE:-false}" debug="${DEBUG:-false}" hostedUrlBase="${HOSTED_URL_BASE:-$DEFAULT_HOSTED_URL_BASE}"
+	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" builders="${BUILDERS:-$DEFAULT_BUILDERS}" boxDir="${BOX_DIR:-$DEFAULT_BOX_DIR}" dryRun="${DRY_RUN:-false}" verbose="${VERBOSE:-false}" debug="${DEBUG:-false}" hostedUrlBase="${HOSTED_URL_BASE:-$DEFAULT_HOSTED_URL_BASE}" hostedRsyncBase="${HOSTED_RSYNC_BASE:-$DEFAULT_HOSTED_RSYNC_BASE}"
 
 
 
@@ -47,7 +48,7 @@ box() {
 
 
 	# shellcheck disable=SC2039
-	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE OP_CLOUD_RELEASE OP_CLOUD_REVOKE
+	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE OP_CLOUD_RELEASE OP_CLOUD_REVOKE OP_UPLOAD
 
 	readonly OP_ADD='add'
 	readonly OP_BUILD='build'
@@ -61,6 +62,7 @@ box() {
 	readonly OP_CLOUD_CREATE='cloud-create'
 	readonly OP_CLOUD_RELEASE='cloud-release'
 	readonly OP_CLOUD_REVOKE='cloud-revoke'
+	readonly OP_UPLOAD='upload'
 
 	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
 
@@ -173,6 +175,16 @@ box() {
 		printf -- '\n'
 	}
 
+	get_providers() {
+		# shellcheck disable=SC2039
+		local provider
+		for provider; do
+			if check_packer_builder "${provider}"; then
+				printf -- '%s\n' "${provider}"
+			fi
+		done
+	}
+
 	get_release_version() {
 		# shellcheck disable=SC2039
 		local release="$1" version
@@ -211,6 +223,11 @@ box() {
 			run_command cd "${dir}"
 			run_command shasum -c "boxes.sha256sum"
 		)
+	}
+
+	upload_boxes() {
+		# shellcheck disable=SC2046
+		run_command rsync --verbose --checksum --progress --relative $(printf -- "${boxDir}/./%s " "$@") "${hostedRsyncBase}"
 	}
 
 	vagrant_cloud_make_request() {
@@ -365,6 +382,11 @@ box() {
 			read_version_description
 		}
 
+		box_files() {
+			# shellcheck disable=SC2046,SC2086
+			printf -- "${releaseDirRelative}/%s.box\n" $(get_providers ${builders})
+		}
+
 		get_cloud_box_data() {
 			jq --compact-output --null-input --arg boxOwner "${VAGRANT_CLOUD_ORG}" \
 				--arg boxName "debian${release}-${arch}" --arg boxDescription "$(read_box_description)" \
@@ -385,8 +407,8 @@ box() {
 			;;
 
 			("${OP_CHECKSUM}")
-				# shellcheck disable=SC2046
-				checksum_boxes "${releaseDir}" 'boxes' $(printf -- '%s.box ' ${builders})
+				# shellcheck disable=SC2046,SC2086
+				checksum_boxes "${releaseDir}" 'boxes' $(printf -- '%s.box ' $(get_providers ${builders}))
 			;;
 
 			("${OP_CLOUD_CREATE}")
@@ -431,14 +453,18 @@ box() {
 				vagrant_cloud_make_box_request "version/${version}/revoke" "${release}" "" 'PUT' >> "debian${release}-${arch}.curl.log"
 			;;
 
+			("${OP_UPLOAD}")
+				# shellcheck disable=SC2046
+				upload_boxes $(box_files)
+			;;
+
 			("${OP_DESCRIPTION}")
 				# shellcheck disable=SC2046,SC2016
 				run_command_redirect_output "${descriptionFile}" read_description
 			;;
 
 			("${OP_PRINT_BOX}")
-				# shellcheck disable=SC2046,SC2086
-				printf -- "${releaseDirRelative}/%s.box\n" ${builders}
+				box_files
 			;;
 
 			("${OP_PRINT_DESCRIPTION}")
@@ -472,6 +498,13 @@ box() {
 	do_global_op() {
 		# shellcheck disable=SC2039
 		local operation="$1"
+
+		box_files() {
+			# shellcheck disable=SC2086
+			do_release_loop "${OP_PRINT_BOX}" ${releases}
+		}
+
+
 		case "${operation}" in
 			("${OP_BUILD}")
 				# shellcheck disable=SC2086
@@ -490,8 +523,8 @@ box() {
 			;;
 
 			("${OP_PRINT_BOX}")
-				# shellcheck disable=SC2046,SC2086
-				printf -- "${boxDir}/%s\n" $(do_release_loop "${OP_PRINT_BOX}" ${releases})
+				# shellcheck disable=SC2046
+				printf -- "${boxDir}/%s\n" $(box_files)
 			;;
 
 			("${OP_PREPARE}")
@@ -500,6 +533,11 @@ box() {
 				if ! [ -d 'tools-manual/open-vm-tools' ]; then
 					run_command git clone 'https://github.com/vmware/open-vm-tools.git' 'tools-manual/open-vm-tools'
 				fi
+			;;
+
+			("${OP_UPLOAD}")
+				# shellcheck disable=SC2046
+				upload_boxes $(box_files)
 			;;
 
 			("${OP_BUILDERS}")
@@ -550,6 +588,7 @@ box() {
 			 release ${OP_DESCRIPTION}         Write description file for each release
 			 release ${OP_PRINT_BOX}           Show the box file names for the selected releases, relative to the box directory
 			 release ${OP_PRINT_DESCRIPTION}   Show the descriptions for selected releases
+			 release ${OP_UPLOAD}              Upload the release .box files
 			 release ${OP_VERIFY}              Verify release .box files against an existing checksum
 
 			EOT
