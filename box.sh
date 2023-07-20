@@ -7,7 +7,7 @@ box() {
 
 
 	get_mapped_arch() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local arch
 		arch="$(uname -m)"
 		case "${arch}" in
@@ -25,8 +25,9 @@ box() {
 		printf -- '%s' "${arch}"
 	}
 
-	# shellcheck disable=SC2039
+	# shellcheck disable=SC3043
 	local DEFAULT_ARCH DEFAULT_RELEASES DEFAULT_BUILDERS DEFAULT_BOX_DIR DEFAULT_HOSTED_URL_BASE DEFAULT_HOSTED_RSYNC_BASE
+	# shellcheck disable=SC2155
 	readonly DEFAULT_ARCH="$(get_mapped_arch)"
 	readonly DEFAULT_RELEASES='10 11 12'
 	readonly DEFAULT_BUILDERS='parallels vmware virtualbox'
@@ -35,19 +36,19 @@ box() {
 	readonly DEFAULT_HOSTED_RSYNC_BASE='dal-web-01.koalephant.net:/srv/www/boxes.storage.koalephant.com'
 
 
-	# shellcheck disable=SC2039
+	# shellcheck disable=SC3043
 	local arch="${ARCH:-$DEFAULT_ARCH}" releases="${RELEASES:-$DEFAULT_RELEASES}" builders="${BUILDERS:-$DEFAULT_BUILDERS}" boxDir="${BOX_DIR:-$DEFAULT_BOX_DIR}" dryRun="${DRY_RUN:-false}" verbose="${VERBOSE:-false}" debug="${DEBUG:-false}" hostedUrlBase="${HOSTED_URL_BASE:-$DEFAULT_HOSTED_URL_BASE}" hostedRsyncBase="${HOSTED_RSYNC_BASE:-$DEFAULT_HOSTED_RSYNC_BASE}"
 
 
 
-	# shellcheck disable=SC2039
+	# shellcheck disable=SC3043
 	local OP_GROUP_GLOBAL OP_GROUP_BOX OP_GROUP_RELEASE
 	readonly OP_GROUP_GLOBAL='global'
 	readonly OP_GROUP_BOX='box'
 	readonly OP_GROUP_RELEASE='release'
 
 
-	# shellcheck disable=SC2039
+	# shellcheck disable=SC3043
 	local OP_ADD OP_BUILD OP_PRINT_DESCRIPTION OP_PRINT_BOX OP_DESCRIPTION OP_CHECKSUM OP_VERIFY OP_BUILDERS OP_PREPARE OP_CLOUD_CREATE OP_CLOUD_RELEASE OP_CLOUD_REVOKE OP_UPLOAD
 
 	readonly OP_ADD='add'
@@ -67,7 +68,7 @@ box() {
 	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
 
 	log_message() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local format="$1"
 		shift
 
@@ -104,7 +105,7 @@ box() {
 	}
 
 	run_command_redirect_output() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local output
 		output="$1"
 		shift
@@ -132,19 +133,19 @@ box() {
 	}
 
 	map_builder_name() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local builder="$1"
 		printf -- '%s-iso.*' "${builder}"
 	}
 
 	read_packer_var() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local release="$1"
 		packer console -var-file "debian${release}-${arch}.pkrvars.hcl" 'debian.pkr.hcl'
 	}
 
 	check_packer_builder() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local builder="$1"
 		case "${builder}" in
 			(parallels)
@@ -162,7 +163,7 @@ box() {
 	}
 
 	get_packer_builders() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local builder fmt='%s';
 
 		for builder; do
@@ -176,7 +177,7 @@ box() {
 	}
 
 	get_providers() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local provider
 		for provider; do
 			if check_packer_builder "${provider}"; then
@@ -186,7 +187,7 @@ box() {
 	}
 
 	get_release_version() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local release="$1" version
 
 		# shellcheck disable=SC2016
@@ -200,7 +201,7 @@ box() {
 	}
 
 	checksum_boxes() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local dir="$1" filename="${2}"
 		shift 2
 		log_verbose 'Generating Box checksums using SHA256'
@@ -215,7 +216,7 @@ box() {
 	}
 
 	verify_boxes() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local dir="$1"
 		shift
 		log_verbose 'Verifying Box checksums using SHA256'
@@ -231,7 +232,7 @@ box() {
 	}
 
 	vagrant_cloud_make_request() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local path="$1" data="$2" method="${3:-POST}"
 
 		run_command curl \
@@ -244,7 +245,7 @@ box() {
 	}
 
 	vagrant_cloud_read_request() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local path="$1"
 
 		run_command_always curl \
@@ -255,14 +256,14 @@ box() {
 	}
 
 	vagrant_cloud_make_box_request() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local path="$1" release="$2"
 		shift 2
 		vagrant_cloud_make_request "box/${VAGRANT_CLOUD_ORG}/debian${release}-${arch}/${path}" "$@"
 	}
 
 	vagrant_cloud_read_box_request() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local path="$1" release="$2"
 		shift 2
 		vagrant_cloud_read_request "box/${VAGRANT_CLOUD_ORG}/debian${release}-${arch}/${path}"
@@ -270,13 +271,13 @@ box() {
 
 
 	get_box_url() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local release="$1" version="$2" provider="$3"
 		printf -- '%s/debian%d-%s/%s/%s.box' "${hostedUrlBase}" "${release}" "${arch}" "${version}" "${provider}"
 	}
 
 	do_box_operation() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local  operation="$1" release="$2" version="$3" provider="$4" releaseDir boxFileName versionFileName
 		releaseDir="${boxDir}/debian${release}-${arch}/${version}"
 		boxFileName="${provider}.box"
@@ -341,7 +342,7 @@ box() {
 	}
 
 	do_box_loop() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local release operation="$1" version
 		shift
 
@@ -356,7 +357,7 @@ box() {
 	}
 
 	do_release_operation() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local operation="$1" release="$2" provider version='' releaseDir releaseDirRelative descriptionFile
 
 		version="$(get_release_version "${release}")"
@@ -485,7 +486,7 @@ box() {
 	}
 
 	do_release_loop() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local release operation="$1"
 		shift
 
@@ -496,7 +497,7 @@ box() {
 
 
 	do_global_op() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local operation="$1"
 
 		box_files() {
@@ -553,11 +554,11 @@ box() {
 	}
 
 	usage() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local group="${1:-$OP_GROUP_GLOBAL}"
 
 		invocation() {
-			# shellcheck disable=SC2039
+			# shellcheck disable=SC3043
 			local groupLine="$1"
 			printf -- 'usage: [Env Vars] box.sh %s OPERATION\n\n' "$groupLine"
 		}
@@ -642,7 +643,7 @@ box() {
 	}
 
 	do_operation() {
-		# shellcheck disable=SC2039
+		# shellcheck disable=SC3043
 		local operation="${1}" group="${OP_GROUP_GLOBAL}"
 		shift
 
