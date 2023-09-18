@@ -3,6 +3,6 @@ iso_checksum = "http://cdimage.debian.org/cdimage/archive/11.7.0/arm64/iso-dvd/S
 iso_name = "debian-11.7.0-arm64-DVD-1.iso"
 iso_url = "http://cdimage.debian.org/cdimage/archive/11.7.0/arm64/iso-dvd/debian-11.7.0-arm64-DVD-1.iso"
 virtualbox_guest_os_type = "Debian_64"
-version = "1.1.0"
+version = "1.1.1"
 version_description = "- Debian 11.7.0"
 box_description = "Debian 11 (Bullseye) Arm 64bit"

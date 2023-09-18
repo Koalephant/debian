@@ -65,7 +65,7 @@ box() {
 	readonly OP_CLOUD_REVOKE='cloud-revoke'
 	readonly OP_UPLOAD='upload'
 
-	export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
+	#export PYTHONPATH=/Library/Frameworks/ParallelsVirtualizationSDK.framework/Versions/10/Libraries/Python/3.7
 
 	log_message() {
 		# shellcheck disable=SC3043
@@ -302,7 +302,7 @@ box() {
 			;;
 
 			("${OP_BUILD}")
-				run_command packer build -var "box_path=${boxDir}" -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders "${provider}")" 'debian.pkr.hcl'
+				run_command packer build -on-error=ask -var "box_path=${boxDir}" -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders "${provider}")" 'debian.pkr.hcl'
 			;;
 
 			("${OP_CLOUD_CREATE}")
@@ -403,7 +403,7 @@ box() {
 		case "${operation}" in
 			("${OP_BUILD}")
 				# shellcheck disable=SC2086
-				run_command packer build -var "box_path=${boxDir}" -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders ${builders})" 'debian.pkr.hcl'
+				run_command packer build -on-error=ask -var "box_path=${boxDir}" -var-file="debian-${arch}.pkrvars.hcl" -var-file "debian${release}-${arch}.pkrvars.hcl" -only "$(get_packer_builders ${builders})" 'debian.pkr.hcl'
 				run_command_redirect_output "${descriptionFile}" read_description
 			;;
 

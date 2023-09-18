@@ -34,6 +34,10 @@ variable "apt_mirror" {
 	default = "https://deb.debian.org/debian"
 }
 
+variable "arch_name" {
+	type = string
+}
+
 variable "box_path" {
 	type = string
 }
@@ -270,12 +274,12 @@ local "vmware_guest_tools_flavours" {
 	}
 }
 
-
 local environment_vars {
 	expression = [
 		"APT_BACKPORTS=${var.apt_backports}",
 		"APT_MIRROR=${var.apt_mirror}",
 		"APT_UPDATES=${var.apt_updates}",
+		"ARCH_NAME=${var.arch_name}",
 		"BOX_ORG=${var.vagrantcloud_org}",
 		"BOX_VERSION=${var.version}",
 		"GUEST_TOOLS=${var.guest_tools}",

@@ -14,23 +14,25 @@ vmware_tools_source() {
 			make install
 
 			ldconfig
-			mkdir -p /usr/local/lib/systemd/system
-			cat <<-'UNIT' > /usr/local/lib/systemd/system/vmtoolsd.service
-			[Unit]
-            Description=Service for virtual machines hosted on VMware
-            Documentation=http://github.com/vmware/open-vm-tools
-            After=network-online.target
+			if ! systemctl list-unit-files open-vm-tools.service > /dev/null; then
+				mkdir -p /usr/local/lib/systemd/system
+				cat <<-'UNIT' > /usr/local/lib/systemd/system/open-vm-tools.service
+				[Unit]
+				Description=Service for virtual machines hosted on VMware
+				Documentation=http://github.com/vmware/open-vm-tools
+				After=network-online.target
 
-            [Service]
-            ExecStart=/usr/local/bin/vmtoolsd
-            Restart=always
-            TimeoutStopSec=5
+				[Service]
+				ExecStart=/usr/local/bin/vmtoolsd
+				Restart=always
+				TimeoutStopSec=5
 
-            [Install]
-            WantedBy=multi-user.target
+				[Install]
+				WantedBy=multi-user.target
 
-			UNIT
-			systemctl enable --now vmtoolsd.service
+				UNIT
+			fi
+			systemctl enable --now open-vm-tools.service
 			apt-mark auto automake make gobjc++ libtool pkg-config libmspack-dev libglib2.0-dev libpam0g-dev libssl-dev libxml2-dev libxmlsec1-dev libx11-dev libxext-dev libxinerama-dev libxi-dev libxrender-dev libxrandr-dev libxtst-dev libgdk-pixbuf2.0-dev libgtk-3-dev libgtkmm-3.0-dev
 			return 0
 		fi
@@ -86,7 +88,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 			printf -- 'Package: open-vm-tools open-vm-tools-dkms open-vm-tools-dev open-vm-tools-desktop\nPin: release a=%s\nPin-Priority: 500\n\n' "$(lsb_release -sc)-updates" "$(lsb_release -sc)-backports" > /etc/apt/preferences.d/open-vm-tools
 
 			if apt-get -y install open-vm-tools && dpkg --compare-versions "$(apt-cache policy open-vm-tools | grep Installed | cut -f 3 -d ':')" lt 10; then
-				printf -- '%s\n' "linux-headers-$(uname -r)" open-vm-dkms open-vm-tools-dkms | xargs -n 1 apt-cache --generate pkgnames | xargs apt-get -y install
+				printf -- '%s\n' open-vm-dkms open-vm-tools-dkms | xargs -n 1 apt-cache --generate pkgnames | xargs apt-get -y install
 			else
 				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
 			fi

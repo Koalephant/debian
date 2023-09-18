@@ -22,7 +22,9 @@ if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 		mount -o loop,ro "/home/${SSH_USER}/prl-tools-lin.iso" /mnt/tools
 	fi
 
-	/mnt/tools/install --install-unattended-with-deps
+	apt-get install -y build-essential dkms
+
+	/mnt/tools/install --install-unattended
 	umount /mnt/tools
 	rmdir /mnt/tools
 	printf -- '- Parallels Tools version %s\n' "$(prltoolsd  -V | cut -f 3 -d ' ')" > /tmp/guest-additions-version.txt

@@ -3,6 +3,6 @@ iso_checksum = "http://cdimage.debian.org/cdimage/archive/10.13.0/arm64/iso-dvd/
 iso_name = "debian-10.13.0-arm64-DVD-1.iso"
 iso_url = "https://cdimage.debian.org/cdimage/archive/10.13.0/arm64/iso-dvd/debian-10.13.0-arm64-DVD-1.iso"
 virtualbox_guest_os_type = "Debian_64"
-version = "1.5.0"
+version = "1.5.1"
 version_description = "- Debian 10.13.0"
 box_description = "Debian 10 (Buster) Arm 64bit"

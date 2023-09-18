@@ -6,7 +6,7 @@ install_from_iso() {
 	# shellcheck disable=SC2039
 	local iso="$1" tempdir
 
-	apt-get install -y "linux-headers-$(uname -r)" build-essential perl dkms
+	apt-get install -y build-essential perl dkms
 	mkdir -p /mnt/tools
 	mount -o loop,ro "$iso" /mnt/tools
 	retCode=0
