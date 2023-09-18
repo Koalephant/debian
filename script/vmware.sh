@@ -87,8 +87,10 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 			printf -- '==> Installing Distro Provided Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
 			printf -- 'Package: open-vm-tools open-vm-tools-dkms open-vm-tools-dev open-vm-tools-desktop\nPin: release a=%s\nPin-Priority: 500\n\n' "$(lsb_release -sc)-updates" "$(lsb_release -sc)-backports" > /etc/apt/preferences.d/open-vm-tools
 
-			if apt-get -y install open-vm-tools && dpkg --compare-versions "$(apt-cache policy open-vm-tools | grep Installed | cut -f 3 -d ':')" lt 10; then
-				printf -- '%s\n' open-vm-dkms open-vm-tools-dkms | xargs -n 1 apt-cache --generate pkgnames | xargs apt-get -y install
+			if apt-get -y install open-vm-tools; then
+				if dpkg --compare-versions "$(apt-cache policy open-vm-tools | grep Installed | cut -f 3 -d ':')" lt 10; then
+					printf -- '%s\n' open-vm-dkms open-vm-tools-dkms | xargs -n 1 apt-cache --generate pkgnames | xargs apt-get -y install
+				fi
 			else
 				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
 			fi
@@ -108,5 +110,4 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 	fi
 
 	rm -fvr "/home/${SSH_USER}/tools-manual/" "/home/${SSH_USER}/vmware-tools-lin.iso" "/tmp/vmware-tools-distrib/"
-
 fi
