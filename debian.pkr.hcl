@@ -34,7 +34,7 @@ variable "apt_mirror" {
 	default = "https://deb.debian.org/debian"
 }
 
-variable "arch_name" {
+variable "kernel_arch_name" {
 	type = string
 }
 
@@ -279,7 +279,7 @@ local environment_vars {
 		"APT_BACKPORTS=${var.apt_backports}",
 		"APT_MIRROR=${var.apt_mirror}",
 		"APT_UPDATES=${var.apt_updates}",
-		"ARCH_NAME=${var.arch_name}",
+		"KERNEL_ARCH_NAME=${var.kernel_arch_name}",
 		"BOX_ORG=${var.vagrantcloud_org}",
 		"BOX_VERSION=${var.version}",
 		"GUEST_TOOLS=${var.guest_tools}",

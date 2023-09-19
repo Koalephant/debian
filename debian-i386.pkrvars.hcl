@@ -6,4 +6,4 @@ boot_command_post = [
 	"<enter>"
 ]
 parallels_guest_tools = "lin"
-arch_name = "i386"
+kernel_arch_name = "686"
