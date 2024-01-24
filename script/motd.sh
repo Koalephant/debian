@@ -13,7 +13,7 @@ case "$(printf -- '%s' "${MOTD:-}" | tr '[:upper:]' '[:lower:]')" in
 
 		printf -- '%s\n%s \\\n' '#!/bin/sh -eu' "printf -- '%-20s %s\\n'" > ${motd_original_release_file}
 
-		printf -- '\t%s \\\n' "'Vagrant Box:' '$(printf -- '%s %s (%s)' "${BOX_ORG}/${VM_NAME}" "${BOX_VERSION}" "${PACKER_BUILD_NAME}")'" >> ${motd_original_release_file}
+		printf -- '\t%s \\\n' "'Vagrant Box:' '$(printf -- '%s/%s %s (%s, %s)' "${BOX_ORG}" "${VM_NAME}" "${BOX_VERSION}" "${VM_ARCH}" "${PACKER_BUILD_NAME}")'" >> ${motd_original_release_file}
 		printf -- '\t%s \\\n' "'Build Date:' '$(date +%Y-%m-%d)'" >> ${motd_original_release_file}
 		printf -- '\t%s \n' "'Build Release:' '$(lsb_release -sd)'" >> ${motd_original_release_file}
 		printf -- '\n' >> ${motd_original_release_file}

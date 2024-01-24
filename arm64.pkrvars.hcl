@@ -10,4 +10,3 @@ vmware_hardware_version = 20
 vmware_guest_os_type = "arm-debian-64"
 vmware_disk_type = "sata"
 vmware_nic_type = "e1000e"
-kernel_arch_name = "arm64"

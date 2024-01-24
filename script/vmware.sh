@@ -14,7 +14,7 @@ vmware_tools_source() {
 			make install
 
 			ldconfig
-			if ! systemctl list-unit-files open-vm-tools.service > /dev/null; then
+			if [ ! -f /lib/systemd/system/open-vm-tools.service ]; then
 				mkdir -p /usr/local/lib/systemd/system
 				cat <<-'UNIT' > /usr/local/lib/systemd/system/open-vm-tools.service
 				[Unit]
@@ -31,6 +31,8 @@ vmware_tools_source() {
 				WantedBy=multi-user.target
 
 				UNIT
+
+				systemctl daemon-reload
 			fi
 			systemctl enable --now open-vm-tools.service
 			apt-mark auto automake make gobjc++ libtool pkg-config libmspack-dev libglib2.0-dev libpam0g-dev libssl-dev libxml2-dev libxmlsec1-dev libx11-dev libxext-dev libxinerama-dev libxi-dev libxrender-dev libxrandr-dev libxtst-dev libgdk-pixbuf2.0-dev libgtk-3-dev libgtkmm-3.0-dev

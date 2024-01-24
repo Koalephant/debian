@@ -1,22 +1,46 @@
 packer {
 	required_plugins {
 		parallels = {
-			version = ">= 1.0.1"
-			source  = "github.com/hashicorp/parallels"
+			version	= ">= 1.0.1"
+			source	= "github.com/hashicorp/parallels"
 		}
 		virtualbox = {
-			version = ">= 1.0.2"
-			source  = "github.com/hashicorp/virtualbox"
+			version	= ">= 1.0.2"
+			source	= "github.com/hashicorp/virtualbox"
 		}
 		vagrant = {
-			version = ">= 1.0.0"
-			source  = "github.com/hashicorp/vagrant"
+			version	= ">= 1.0.0"
+			source	= "github.com/hashicorp/vagrant"
 		}
 		vmware = {
-			version = ">= 1.0.0"
-			source  = "github.com/hashicorp/vmware"
+			version	= ">= 1.0.0"
+			source	= "github.com/hashicorp/vmware"
 		}
 	}
+}
+
+variable "pugilist_box_dir" {
+	type = string
+}
+
+variable "pugilist_box_file" {
+	type = string
+}
+
+variable "pugilist_version_file" {
+	type = string
+}
+
+variable "pugilist_provider" {
+	type = string
+}
+
+variable "pugilist_release" {
+	type = string
+}
+
+variable "pugilist_arch" {
+	type = string
 }
 
 variable "apt_backports" {
@@ -32,14 +56,6 @@ variable "apt_updates" {
 variable "apt_mirror" {
 	type = string
 	default = "https://deb.debian.org/debian"
-}
-
-variable "kernel_arch_name" {
-	type = string
-}
-
-variable "box_path" {
-	type = string
 }
 
 variable "cpus" {
@@ -218,11 +234,6 @@ variable "box_description" {
 	default = ""
 }
 
-variable "vm_name" {
-	type = string
-	default = "debian"
-}
-
 variable "boot_command_pre" {
 	type = list(string)
 	default = []
@@ -279,7 +290,6 @@ local environment_vars {
 		"APT_BACKPORTS=${var.apt_backports}",
 		"APT_MIRROR=${var.apt_mirror}",
 		"APT_UPDATES=${var.apt_updates}",
-		"KERNEL_ARCH_NAME=${var.kernel_arch_name}",
 		"BOX_ORG=${var.vagrantcloud_org}",
 		"BOX_VERSION=${var.version}",
 		"GUEST_TOOLS=${var.guest_tools}",
@@ -290,7 +300,8 @@ local environment_vars {
 		"SSH_PASSWORD=${var.ssh_password}",
 		"SSH_USERNAME=${var.ssh_username}",
 		"UPDATE=${var.update}",
-		"VM_NAME=${var.vm_name}",
+		"VM_NAME=${var.pugilist_release}",
+		"VM_ARCH=${var.pugilist_arch}",
 		"ftp_proxy=${var.ftp_proxy}",
 		"http_proxy=${var.http_proxy}",
 		"https_proxy=${var.https_proxy}",
@@ -300,16 +311,16 @@ local environment_vars {
 }
 
 source "parallels-iso" "parallels" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	cpus = var.cpus
 	disk_size = var.disk_size
 	guest_os_type = var.parallels_guest_os_type
 	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
-	output_directory = "output-${var.vm_name}-parallels-iso"
+	output_directory = "output-${var.pugilist_release}-parallels-iso"
 	parallels_tools_flavor = var.parallels_guest_tools
 	parallels_tools_guest_path = "prl-tools-lin.iso"
 	parallels_tools_mode = "upload"
@@ -332,11 +343,11 @@ source "parallels-iso" "parallels" {
 	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
 	ssh_username = var.ssh_username
-	vm_name = var.vm_name
+	vm_name = var.pugilist_release
 }
 
 source "virtualbox-iso" "virtualbox" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	bundle_iso = true
 	cpus = var.cpus
 	disk_size = var.disk_size
@@ -345,16 +356,16 @@ source "virtualbox-iso" "virtualbox" {
 	guest_os_type = var.virtualbox_guest_os_type
 	headless = var.headless
 	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
-	output_directory = "output-${var.vm_name}-virtualbox-iso"
+	output_directory = "output-${var.pugilist_release}-virtualbox-iso"
 	post_shutdown_delay = "1m"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password = var.ssh_password
+	ssh_password	= var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username = var.ssh_username
+	ssh_username	= var.ssh_username
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
@@ -362,11 +373,11 @@ source "virtualbox-iso" "virtualbox" {
 #		["storageattach", "{{ .Name }}", "--storagectl", "IDE Controller", "--port", "0", "--device", "1", "--type", "dvddrive", "--medium", "none"]
 	]
 	virtualbox_version_file = ".vbox_version"
-	vm_name = var.vm_name
+	vm_name = var.pugilist_release
 }
 
 source "vmware-iso" "vmware" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	cdrom_adapter_type = var.vmware_disk_type
 	cpus = var.cpus
 	disk_adapter_type = var.vmware_disk_type
@@ -374,24 +385,24 @@ source "vmware-iso" "vmware" {
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
 	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
-	output_directory = "output-${var.vm_name}-vmware-iso"
+	output_directory = "output-${var.pugilist_release}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password = var.ssh_password
+	ssh_password	= var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username = var.ssh_username
+	ssh_username	= var.ssh_username
 	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
-	vm_name = var.vm_name
+	vm_name = var.pugilist_release
 	vmx_data = {
-		"suspend.disabled" = true,
+		"suspend.disabled"	= true,
 		"svga.autodetect" = true,
 		"time.synchronize.continue" = "FALSE"
 		"time.synchronize.restore" = "FALSE"
@@ -400,7 +411,7 @@ source "vmware-iso" "vmware" {
 		"time.synchronize.shrink" = "FALSE"
 		"time.synchronize.tools.enable" = "FALSE"
 		"time.synchronize.tools.startup" = "FALSE"
-		"usb_xhci.present" = true
+		"usb_xhci.present"	= true
 	}
 }
 
@@ -433,8 +444,8 @@ build {
 			"script/systemd.sh",
 			"script/grub.sh",
 			"script/lvm.sh",
+			"script/linux-headers.sh",
 			"script/update.sh",
-			"script/linux-headers.sh"
 		]
 		skip_clean = true
 	}
@@ -449,28 +460,39 @@ build {
 			"script/vagrant.sh",
 			"script/vmware.sh",
 			"script/virtualbox.sh",
-			"script/parallels.sh"
+			"script/parallels.sh",
 		]
 	}
 
 	provisioner "file" {
-		destination = "${var.box_path}/${var.vm_name}/${var.version}/${source.name}.version"
+		destination = "${var.pugilist_box_dir}/${var.pugilist_version_file}"
 		direction = "download"
 		source = "/tmp/guest-additions-version.txt"
 	}
 
 	provisioner "shell" {
+		environment_vars = local.environment_vars
+		execute_command	= local.script_command
+		expect_disconnect = true
+		scripts = [
+			"script/zero-prepare.sh",
+			"script/minimize.sh",
+			"script/cleanup.sh",
+		]
+	}
+
+	provisioner "shell" {
+		environment_vars = local.environment_vars
 		execute_command = local.script_command
 		scripts = [
-			"script/minimize.sh",
-			"script/cleanup.sh"
+			"script/zero.sh"
 		]
 	}
 
 	post-processors {
 		post-processor "vagrant" {
 			keep_input_artifact = false
-			output = "${var.box_path}/${var.vm_name}/${var.version}/${source.name}.box"
+			output = "${var.pugilist_box_dir}/${var.pugilist_box_file}"
 			vagrantfile_template = var.vagrantfile_template
 		}
 	}

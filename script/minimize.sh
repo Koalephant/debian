@@ -17,8 +17,6 @@ dpkg --list | awk '{ print $2 }' | grep linux-source | xargs apt-get -y purge
 printf -- '==> %s\n' 'Removing development packages'
 dpkg --list | awk '{ print $2 }' | grep -- '-dev$' | xargs apt-get -y purge
 
-purge_packages build-essential
-
 printf -- '==> %s\n' 'Removing X11 libraries'
 purge_packages libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6
 

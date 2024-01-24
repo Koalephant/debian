@@ -36,49 +36,18 @@ rm -fv /root/.bash_history
 rm -fv /home/vagrant/.bash_history
 
 # Clean up log files
-find /var/log -type f | while read f; do printf -- '' > "${f}"; done;
+find /var/log -type f | while read -r f; do printf -- '' > "${f}"; done;
 
 printf -- '==> %s\n' 'Clearing last login information'
 printf -- '' > /var/log/lastlog
 printf -- '' > /var/log/wtmp
 printf -- '' > /var/log/btmp
 
-# Whiteout root
-printf -- '==> %s\n' 'Clear out root fs'
-count=$(( $(df --sync -kP / | tail -n1  | awk -F ' ' '{print $4}') - 1 ))
-
-dd if=/dev/zero of=/tmp/whitespace bs=1024 count=${count} || printf -- 'dd exit code %d is suppressed\n' $?
-rm -fv /tmp/whitespace
-
-# Whiteout /boot
-printf -- '==> %s\n' 'Clear out /boot'
-count=$(( $(df --sync -kP / | tail -n1  | awk -F ' ' '{print $4}') - 1 ))
-dd if=/dev/zero of=/boot/whitespace bs=1024 count=${count} || printf -- 'dd exit code %d is suppressed\n' $?
-rm -fv /boot/whitespace
-
-printf -- '==> %s\n' 'Clear out swap and disable until reboot'
-set +e
-swapuuid=$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)
-case $? in
-	2|0) ;;
-	*) exit 1 ;;
-esac
-set -e
-if [ -n "${swapuuid}" ]; then
-	# Whiteout the swap partition to reduce box size
-	# Swap is disabled till reboot
-	swappart=$(readlink -f /dev/disk/by-uuid/$swapuuid)
-	/sbin/swapoff "${swappart}"
-	dd if=/dev/zero of="${swappart}" bs=1M || printf -- 'dd exit code %d is suppressed\n' $?
-	/sbin/mkswap -U "${swapuuid}" "${swappart}"
-fi
-
-# Make sure we wait until all the data is written to disk, otherwise
-# Packer might quit too early
-sync
-
 printf -- '==> %s\n' 'Disk usage before cleanup'
 printf -- '%s\n' "${DISK_USAGE_BEFORE_CLEANUP}"
 
 printf -- '==> %s\n' 'Disk usage after cleanup'
 df -h
+
+printf -- '==> %s\n' 'Rebooting'
+nohup shutdown --reboot now </dev/null >/dev/null 2>&1 &

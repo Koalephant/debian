@@ -6,4 +6,3 @@ boot_command_post = [
 	"<enter>"
 ]
 parallels_guest_tools = "lin"
-kernel_arch_name = "amd64"

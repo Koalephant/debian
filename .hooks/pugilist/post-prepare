@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mkdir -p 'tools-manual'
+git clone 'https://github.com/vmware/open-vm-tools.git' 'tools-manual/open-vm-tools'
