@@ -10,12 +10,12 @@ dpkg --get-selections | grep -v deinstall
 DISK_USAGE_BEFORE_MINIMIZE="$(df -h)"
 
 # Remove some packages to get a minimal install
-printf -- '==> %s\n' 'Removing all linux kernels except the currrent one'
+printf -- '==> %s\n' 'Removing all linux kernels except the current one'
 dpkg --list | awk '{ print $2 }' | grep 'linux-image-*' | grep -v $(uname -r) | grep -v linux-image-$(uname -r | cut -f '3' -d '-') | xargs apt-get -y purge
 printf -- '==> %s\n' 'Removing linux source'
 dpkg --list | awk '{ print $2 }' | grep linux-source | xargs apt-get -y purge
 printf -- '==> %s\n' 'Removing development packages'
-dpkg --list | awk '{ print $2 }' | grep -- '-dev$' | xargs apt-get -y purge
+dpkg --list | awk '{ print $2 }' | grep -v 'dpkg-dev' | grep -- '-dev$' | xargs apt-get -y purge
 
 printf -- '==> %s\n' 'Removing X11 libraries'
 purge_packages libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6

@@ -43,6 +43,11 @@ variable "pugilist_arch" {
 	type = string
 }
 
+variable "pugilist_rsync_base" {
+	type = string
+	default = ""
+}
+
 variable "apt_backports" {
 	type = bool
 	default = true

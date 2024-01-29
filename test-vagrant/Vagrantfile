@@ -3,31 +3,15 @@
 
 NAME = 'debian-test-vagrant'
 
-def archname()
-	arch = `uname -m`.chomp
-	case arch
-	when 'x86_64'
-		return 'amd64'
-	when 'i686'
-		return 'i386'
-	when 'aarch64_be', 'aarch64', 'armv8b', 'armv8l'
-		return 'arm64'
-	else
-		return arch
-	end
-end
-
 Vagrant.configure(2) do |config|
 
 	config.vagrant.plugins = ['vagrant-parallels', 'vagrant-vmware-desktop']
 
-	arch=ENV['ARCH'] || archname
-
 	(10..12).each do |version|
-		basename = "debian#{version}-#{arch}"
+		basename = "debian#{version}"
 		config.vm.define basename do |machine|
 			machine.vm.box = "koalephant/#{basename}-test"
-			vmname = "Debian #{version} Test VM (#{arch})"
+			vmname = "Debian #{version} Test VM"
 			[:vmware_workstation, :vmware_fusion, :vmware_desktop].each do |provider|
 				machine.vm.provider(provider) do |vm|
 					vm.vmx[:displayname] = vmname
