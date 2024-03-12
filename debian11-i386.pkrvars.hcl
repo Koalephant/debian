@@ -1,5 +1,5 @@
-iso_checksum = "http://cdimage.debian.org/cdimage/archive/11.8.0/i386/iso-dvd/SHA256SUMS"
-iso_name = "debian-11.8.0-i386-DVD-1.iso"
-iso_url = "https://cdimage.debian.org/cdimage/archive/11.8.0/i386/iso-dvd/debian-11.8.0-i386-DVD-1.iso"
+iso_checksum = "http://cdimage.debian.org/cdimage/archive/11.9.0/i386/iso-dvd/SHA256SUMS"
+iso_name = "debian-11.9.0-i386-DVD-1.iso"
+iso_url = "https://cdimage.debian.org/cdimage/archive/11.9.0/i386/iso-dvd/debian-11.9.0-i386-DVD-1.iso"
 vmware_guest_os_type = "debian11"
 virtualbox_guest_os_type = "Debian"

@@ -45,7 +45,12 @@ variable "pugilist_arch" {
 
 variable "pugilist_rsync_base" {
 	type = string
-	default = ""
+	default = "dal-web-01.koalephant.net:/srv/www/boxes.storage.koalephant.com/"
+}
+
+variable "pugilist_url_base" {
+	type = string
+	default = "https://boxes.storage.koalephant.com"
 }
 
 variable "apt_backports" {
