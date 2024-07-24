@@ -169,9 +169,11 @@ variable "parallels_guest_tools" {
 
 variable "virtualbox_guest_os_type" {
 	type = string
+	default = ""
 }
 variable "vmware_guest_os_type" {
 	type = string
+	default = ""
 }
 
 variable "vmware_hardware_version" {
