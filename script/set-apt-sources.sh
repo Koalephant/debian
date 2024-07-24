@@ -19,11 +19,18 @@ add_apt_component() {
 	printf -- 'deb-src  %s    %s%s    main contrib\n\n' "${2:-$APT_MIRROR}" "${release}" "${1:-}"
 }
 
+check_apt_dist() {
+	printf -- '==> %s\n' "Checking dist for ${release}${1:-}."
+	[ "$(curl --head --silent --write-out '%{http_code}' --output /dev/null "${APT_MIRROR}/dists/${release}${1:-}/Release")" -eq 200 ]
+}
+
 add_apt_component > /etc/apt/sources.list
 
 case "$(printf -- '%s' "${APT_UPDATES:-}" | tr '[:upper:]' '[:lower:]')" in
 	(true|yes|on|1)
-		add_apt_component '-updates' >> /etc/apt/sources.list
+		if check_apt_dist '-updates'; then
+			add_apt_component '-updates' >> /etc/apt/sources.list
+		fi
 	;;
 esac
 
@@ -35,7 +42,11 @@ fi
 
 case "$(printf -- '%s' "${APT_BACKPORTS:-}" | tr '[:upper:]' '[:lower:]')" in
 	(true|yes|on|1)
-		add_apt_component '-backports' >> /etc/apt/sources.list
+		if check_apt_dist '-backports'; then
+			add_apt_component '-backports' >> /etc/apt/sources.list
+		else
+			printf -- '==> %s\n' "Skipped Backports for ${release}, not available."
+		fi
 	;;
 esac
 
