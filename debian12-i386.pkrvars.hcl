@@ -1,5 +1,5 @@
 iso_checksum = "http://cdimage.debian.org/cdimage/release/current/i386/iso-dvd/SHA256SUMS"
-iso_name = "debian-12.6.0-i386-DVD-1.iso"
-iso_url = "https://cdimage.debian.org/cdimage/release/current/i386/iso-dvd/debian-12.6.0-i386-DVD-1.iso"
+iso_name = "debian-12.7.0-i386-DVD-1.iso"
+iso_url = "https://cdimage.debian.org/cdimage/release/current/i386/iso-dvd/debian-12.7.0-i386-DVD-1.iso"
 vmware_guest_os_type = "debian12"
 virtualbox_guest_os_type = "Debian"
