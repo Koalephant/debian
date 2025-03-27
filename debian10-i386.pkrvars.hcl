@@ -2,4 +2,3 @@ iso_checksum = "http://cdimage.debian.org/cdimage/archive/10.13.0/i386/iso-dvd/S
 iso_name = "debian-10.13.0-i386-DVD-1.iso"
 iso_url = "http://cdimage.debian.org/cdimage/archive/10.13.0/i386/iso-dvd/debian-10.13.0-i386-DVD-1.iso"
 vmware_guest_os_type = "debian10"
-virtualbox_guest_os_type = "Debian"

@@ -6,3 +6,4 @@ boot_command_post = [
 	"<enter>"
 ]
 parallels_guest_tools = "lin"
+virtualbox_guest_os_type = "Debian"

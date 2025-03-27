@@ -3,7 +3,7 @@
 SSH_USER="${SSH_USERNAME:-vagrant}"
 
 install_from_iso() {
-	# shellcheck disable=SC2039
+	# shellcheck disable=SC2039,SC3043
 	local iso="$1" tempdir
 
 	apt-get install -y build-essential perl dkms
@@ -13,7 +13,7 @@ install_from_iso() {
 
 	tempdir="$(mktemp -d)"
 
-	/mnt/tools/VBoxLinuxAdditions.run --nox11 --noexec --target "$tempdir"
+	/mnt/tools/"${VIRTUALBOX_GUEST_TOOLS_INSTALLER}" --nox11 --noexec --target "$tempdir"
 
 	umount /mnt/tools
 	rmdir /mnt/tools

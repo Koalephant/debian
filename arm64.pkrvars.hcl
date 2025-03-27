@@ -10,3 +10,6 @@ vmware_hardware_version = 20
 vmware_guest_os_type = "arm-debian-64"
 vmware_disk_type = "sata"
 vmware_nic_type = "e1000e"
+virtualbox_guest_os_type = "Debian_arm64"
+virtualbox_gfx_controller = "vmsvga"
+virtualbox_guest_tools_installer = "VBoxLinuxAdditions-arm64.run"
