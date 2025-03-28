@@ -1,20 +1,20 @@
 packer {
 	required_plugins {
 		parallels = {
-			version	= ">= 1.0.1"
-			source	= "github.com/hashicorp/parallels"
+			version = ">= 1.2.3"
+			source = "github.com/hashicorp/parallels"
 		}
 		virtualbox = {
-			version	= ">= 1.1.1"
-			source	= "github.com/hashicorp/virtualbox"
+			version = ">= 1.1.1"
+			source = "github.com/hashicorp/virtualbox"
 		}
 		vagrant = {
-			version	= ">= 1.0.0"
-			source	= "github.com/hashicorp/vagrant"
+			version = ">= 1.0.0"
+			source = "github.com/hashicorp/vagrant"
 		}
 		vmware = {
-			version	= ">= 1.0.0"
-			source	= "github.com/hashicorp/vmware"
+			version = ">= 1.0.0"
+			source = "github.com/hashicorp/vmware"
 		}
 	}
 }
@@ -171,6 +171,16 @@ variable "parallels_guest_tools" {
 	type = string
 }
 
+variable "parallels_guest_tools_iso" {
+	type = string
+	default = "prl-tools-lin.iso"
+}
+
+variable "parallels_guest_tools_installer" {
+	type = string
+	default = "install"
+}
+
 variable "virtualbox_guest_os_type" {
 	type = string
 	default = ""
@@ -181,6 +191,11 @@ variable "virtualbox_gfx_controller" {
 	default = ""
 }
 
+variable "virtualbox_guest_tools_iso" {
+	type = string
+	default = "VBoxGuestAdditions.iso"
+}
+
 variable "virtualbox_guest_tools_installer" {
 	type = string
 	default = "VBoxLinuxAdditions.run"
@@ -189,6 +204,16 @@ variable "virtualbox_guest_tools_installer" {
 variable "vmware_guest_os_type" {
 	type = string
 	default = ""
+}
+
+variable "vmware_guest_tools_iso" {
+	type = string
+	default = "vmware-tools-lin.iso"
+}
+
+variable "vmware_guest_tools_installer" {
+	type = string
+	default = "vmware-install.pl"
 }
 
 variable "vmware_hardware_version" {
@@ -329,7 +354,12 @@ local environment_vars {
 		"UPDATE=${var.update}",
 		"VM_NAME=${var.box_name}",
 		"VM_ARCH=${var.box_arch}",
+		"PARALLELS_GUEST_TOOLS_ISO=${var.parallels_guest_tools_iso}",
+		"PARALLELS_GUEST_TOOLS_INSTALLER=${var.parallels_guest_tools_installer}",
 		"VIRTUALBOX_GUEST_TOOLS_INSTALLER=${var.virtualbox_guest_tools_installer}",
+		"VIRTUALBOX_GUEST_TOOLS_ISO=${var.virtualbox_guest_tools_iso}",
+		"VMWARE_GUEST_TOOLS_INSTALLER=${var.vmware_guest_tools_installer}",
+		"VMWARE_GUEST_TOOLS_ISO=${var.vmware_guest_tools_iso}",
 		"ftp_proxy=${var.ftp_proxy}",
 		"http_proxy=${var.http_proxy}",
 		"https_proxy=${var.https_proxy}",
@@ -339,18 +369,18 @@ local environment_vars {
 }
 
 source "parallels-iso" "parallels" {
-	boot_command	= local.boot_command
+	boot_command = local.boot_command
 	cpus = var.cpus
 	disk_size = var.disk_size
 	guest_os_type = var.parallels_guest_os_type
 	http_directory = local.http_dir
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
 	output_directory = "output-${var.box_name}-parallels-iso"
 	parallels_tools_flavor = var.parallels_guest_tools
-	parallels_tools_guest_path = "prl-tools-lin.iso"
+	parallels_tools_guest_path = var.parallels_guest_tools_iso
 	parallels_tools_mode = "upload"
 	prlctl = [
 		["set", "{{ .Name }}", "--shf-host-defined", "off"],
@@ -375,13 +405,13 @@ source "parallels-iso" "parallels" {
 }
 
 source "virtualbox-iso" "virtualbox" {
-	boot_command	= local.boot_command
+	boot_command = local.boot_command
 	bundle_iso = true
 	cpus = var.cpus
 	disk_size = var.disk_size
 	firmware = "efi"
 	guest_additions_mode = "upload"
-	guest_additions_path = "VBoxGuestAdditions.iso"
+	guest_additions_path = var.virtualbox_guest_tools_iso
 	guest_os_type = var.virtualbox_guest_os_type
 	gfx_controller = var.virtualbox_gfx_controller
 	gfx_vram_size = "22"
@@ -389,16 +419,16 @@ source "virtualbox-iso" "virtualbox" {
 	headless = var.headless
 	http_directory = local.http_dir
 	iso_interface = "virtio"
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
 	output_directory = "output-${var.box_name}-virtualbox-iso"
 	post_shutdown_delay = "1m"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password	= var.ssh_password
+	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username	= var.ssh_username
+	ssh_username = var.ssh_username
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
 		["modifyvm", "{{ .Name }}", "--chipset", "armv8virtual"],
@@ -417,7 +447,7 @@ source "virtualbox-iso" "virtualbox" {
 }
 
 source "vmware-iso" "vmware" {
-	boot_command	= local.boot_command
+	boot_command = local.boot_command
 	cdrom_adapter_type = var.vmware_disk_type
 	cpus = var.cpus
 	disk_adapter_type = var.vmware_disk_type
@@ -425,7 +455,7 @@ source "vmware-iso" "vmware" {
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
 	http_directory = local.http_dir
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
@@ -433,16 +463,16 @@ source "vmware-iso" "vmware" {
 	network_adapter_type = var.vmware_nic_type
 	output_directory = "output-${var.box_name}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password	= var.ssh_password
+	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username	= var.ssh_username
+	ssh_username = var.ssh_username
 	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
 	vm_name = var.box_name
 	vmx_data = {
-		"suspend.disabled"	= true,
+		"suspend.disabled" = true,
 		"svga.autodetect" = true,
 		"time.synchronize.continue" = "FALSE"
 		"time.synchronize.restore" = "FALSE"
@@ -451,7 +481,7 @@ source "vmware-iso" "vmware" {
 		"time.synchronize.shrink" = "FALSE"
 		"time.synchronize.tools.enable" = "FALSE"
 		"time.synchronize.tools.startup" = "FALSE"
-		"usb_xhci.present"	= true
+		"usb_xhci.present" = true
 	}
 }
 
@@ -512,7 +542,7 @@ build {
 
 	provisioner "shell" {
 		environment_vars = local.environment_vars
-		execute_command	= local.script_command
+		execute_command = local.script_command
 		expect_disconnect = true
 		scripts = [
 			"script/zero-prepare.sh",

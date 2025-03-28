@@ -7,7 +7,7 @@ vmware_tools_source() {
 	for dir; do
 		if [ -d "${dir}" ]; then
 			apt-get -y install automake make gobjc++ libtool pkg-config libmspack-dev libglib2.0-dev libpam0g-dev libssl-dev libxml2-dev libxmlsec1-dev libx11-dev libxext-dev libxinerama-dev libxi-dev libxrender-dev libxrandr-dev libxtst-dev libgdk-pixbuf2.0-dev libgtk-3-dev libgtkmm-3.0-dev
-			cd "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
+			cd "${dir}"
 			autoreconf -i
 			./configure --disable-dependency-tracking
 			make
@@ -55,11 +55,7 @@ vmware_tools_iso() {
 			version="$(printf '%s' "${toolsPath}" | cut -f2 -d'-')"
 
 			tar zxf "${toolsPath}" -C /tmp/
-			if dpkg --compare-versions "${version}" lt 10; then
-				/tmp/vmware-tools-distrib/vmware-install.pl -d
-			else
-				/tmp/vmware-tools-distrib/vmware-install.pl --force-install
-			fi
+			/tmp/vmware-tools-distrib/"${VMWARE_GUEST_TOOLS_INSTALLER}" --force-install
 
 			umount /mnt/tools
 			rmdir /mnt/tools
@@ -103,7 +99,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 	esac
 
 	if ! command -v vmware-toolbox-cmd > /dev/null; then
-		if vmware_tools_iso "/home/${SSH_USER}/tools-manual/vmware-tools-lin.iso" "/home/${SSH_USER}/vmware-tools-lin.iso"; then
+		if vmware_tools_iso "/home/${SSH_USER}/tools-manual/${VMWARE_GUEST_TOOLS_ISO}" "/home/${SSH_USER}/${VMWARE_GUEST_TOOLS_ISO}"; then
 			printf -- '- VMWare Tools version %s\n' "$(vmware-toolbox-cmd -v | cut -d ' ' -f 1)" > /tmp/guest-additions-version.txt
 		else
 			vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
@@ -111,5 +107,5 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 		fi
 	fi
 
-	rm -fvr "/home/${SSH_USER}/tools-manual/" "/home/${SSH_USER}/vmware-tools-lin.iso" "/tmp/vmware-tools-distrib/"
+	rm -fvr "/home/${SSH_USER:?}/${VMWARE_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual/" "/tmp/vmware-tools-distrib/"
 fi

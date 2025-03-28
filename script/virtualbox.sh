@@ -60,13 +60,13 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 
 	if ! command -v VBoxControl > /dev/null; then
 		printf -- '==> Installing Hypervisor Provided Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
-		if [ -f "/home/${SSH_USER}/tools-manual/VBoxGuestAdditions.iso" ]; then
-			install_from_iso "/home/${SSH_USER}/tools-manual/VBoxGuestAdditions.iso"
+		if [ -f "/home/${SSH_USER}/tools-manual/${VIRTUALBOX_GUEST_TOOLS_ISO}" ]; then
+			install_from_iso "/home/${SSH_USER}/tools-manual/${VIRTUALBOX_GUEST_TOOLS_ISO}"
 		else
-			install_from_iso "/home/${SSH_USER}/VBoxGuestAdditions.iso"
+			install_from_iso "/home/${SSH_USER}/${VIRTUALBOX_GUEST_TOOLS_ISO}"
 		fi
 	fi
 
 	printf -- '- VirtualBox Guest Additions version %s\n' "$(VBoxControl -v)" > /tmp/guest-additions-version.txt
-	rm -frv "/home/${SSH_USER}/VBoxGuestAdditions.iso" /home/${SSH_USER}/tools-manual/ "/home/${SSH_USER}/.vbox_version"
+	rm -frv "/home/${SSH_USER:?}/${VIRTUALBOX_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual/" "/home/${SSH_USER}/.vbox_version"
 fi

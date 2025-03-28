@@ -16,17 +16,17 @@ if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 	esac
 
 	mkdir -p /mnt/tools
-	if [ -f "/home/${SSH_USER}/tools-manual/prl-tools-lin.iso" ]; then
-		mount -o loop,ro "/home/${SSH_USER}/tools-manual/prl-tools-lin.iso" /mnt/tools
+	if [ -f "/home/${SSH_USER}/tools-manual/${PARALLELS_GUEST_TOOLS_ISO}" ]; then
+		mount -o loop,ro "/home/${SSH_USER}/tools-manual/${PARALLELS_GUEST_TOOLS_ISO}" /mnt/tools
 	else
-		mount -o loop,ro "/home/${SSH_USER}/prl-tools-lin.iso" /mnt/tools
+		mount -o loop,ro "/home/${SSH_USER}/${PARALLELS_GUEST_TOOLS_ISO}" /mnt/tools
 	fi
 
 	apt-get install -y build-essential dkms
 
-	/mnt/tools/install --install-unattended
+	/mnt/tools/"${PARALLELS_GUEST_TOOLS_INSTALLER}" --install-unattended
 	umount /mnt/tools
 	rmdir /mnt/tools
 	printf -- '- Parallels Tools version %s\n' "$(prltoolsd  -V | cut -f 3 -d ' ')" > /tmp/guest-additions-version.txt
-	rm -frv "/home/${SSH_USER}/prl-tools-lin.iso" "/home/${SSH_USER}/tools-manual" "/home/${SSH_USER}/.prlctl_version"
+	rm -frv "/home/${SSH_USER:?}/${PARALLELS_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual" "/home/${SSH_USER}/.prlctl_version"
 fi
