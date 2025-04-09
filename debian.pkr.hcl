@@ -438,7 +438,6 @@ source "virtualbox-iso" "virtualbox" {
 	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
-	keep_registered = true
 	memory = var.memory
 	output_directory = "output-${var.box_name}-virtualbox-iso"
 	post_shutdown_delay = "1m"
@@ -577,7 +576,6 @@ build {
 
 	post-processors {
 		post-processor "vagrant" {
-			keep_input_artifact = true
 			include = [var.box_info_file]
 			output = "${var.box_output_dir}/${var.box_output_file}"
 			vagrantfile_template = var.vagrantfile_template
