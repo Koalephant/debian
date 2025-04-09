@@ -233,7 +233,7 @@ variable "vmware_guest_tools_installer" {
 
 variable "vmware_hardware_version" {
 	type = number
-	default = 9
+	default = 13
 }
 
 variable "vmware_nic_type" {
