@@ -186,6 +186,21 @@ variable "virtualbox_guest_os_type" {
 	default = ""
 }
 
+variable "virtualbox_guest_arch" {
+	type = string
+	default = "x86"
+}
+
+variable "virtualbox_chipset" {
+	type = string
+	default = "ich9"
+}
+
+variable "virtualbox_firmware" {
+	type = string
+	default = "bios"
+}
+
 variable "virtualbox_gfx_controller" {
 	type = string
 	default = ""
@@ -369,12 +384,12 @@ local environment_vars {
 }
 
 source "parallels-iso" "parallels" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	cpus = var.cpus
 	disk_size = var.disk_size
 	guest_os_type = var.parallels_guest_os_type
 	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
@@ -405,11 +420,12 @@ source "parallels-iso" "parallels" {
 }
 
 source "virtualbox-iso" "virtualbox" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	bundle_iso = true
 	cpus = var.cpus
 	disk_size = var.disk_size
-	firmware = "efi"
+	firmware = var.virtualbox_firmware
+	#chipset = var.virtualbox_chipset
 	guest_additions_mode = "upload"
 	guest_additions_path = var.virtualbox_guest_tools_iso
 	guest_os_type = var.virtualbox_guest_os_type
@@ -419,35 +435,35 @@ source "virtualbox-iso" "virtualbox" {
 	headless = var.headless
 	http_directory = local.http_dir
 	iso_interface = "virtio"
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
+	keep_registered = true
 	memory = var.memory
 	output_directory = "output-${var.box_name}-virtualbox-iso"
 	post_shutdown_delay = "1m"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password = var.ssh_password
+	ssh_password	= var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username = var.ssh_username
+	ssh_username	= var.ssh_username
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
-		["modifyvm", "{{ .Name }}", "--chipset", "armv8virtual"],
+		["modifyvm", "{{ .Name }}", "--chipset", var.virtualbox_chipset],
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
-		["modifyvm", "{{ .Name }}", "--boot1", "dvd"],
-		["modifyvm", "{{ .Name }}", "--boot2", "disk"],
+		["modifyvm", "{{ .Name }}", "--boot1", "disk"],
+		["modifyvm", "{{ .Name }}", "--boot2", "dvd"],
 		["modifyvm", "{{ .Name }}", "--usb-xhci", "on"],
 		["modifyvm", "{{ .Name }}", "--keyboard", "usb"],
 		["modifyvm", "{{ .Name }}", "--mouse", "usb"],
 		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
 		["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
-#		["storageattach", "{{ .Name }}", "--storagectl", "IDE Controller", "--port", "0", "--device", "1", "--type", "dvddrive", "--medium", "none"]
 	]
 	virtualbox_version_file = ".vbox_version"
 	vm_name = var.box_name
 }
 
 source "vmware-iso" "vmware" {
-	boot_command = local.boot_command
+	boot_command	= local.boot_command
 	cdrom_adapter_type = var.vmware_disk_type
 	cpus = var.cpus
 	disk_adapter_type = var.vmware_disk_type
@@ -455,7 +471,7 @@ source "vmware-iso" "vmware" {
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
 	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
@@ -463,16 +479,16 @@ source "vmware-iso" "vmware" {
 	network_adapter_type = var.vmware_nic_type
 	output_directory = "output-${var.box_name}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
-	ssh_password = var.ssh_password
+	ssh_password	= var.ssh_password
 	ssh_timeout = "10000s"
-	ssh_username = var.ssh_username
+	ssh_username	= var.ssh_username
 	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
 	vm_name = var.box_name
 	vmx_data = {
-		"suspend.disabled" = true,
+		"suspend.disabled"	= true,
 		"svga.autodetect" = true,
 		"time.synchronize.continue" = "FALSE"
 		"time.synchronize.restore" = "FALSE"
@@ -481,7 +497,7 @@ source "vmware-iso" "vmware" {
 		"time.synchronize.shrink" = "FALSE"
 		"time.synchronize.tools.enable" = "FALSE"
 		"time.synchronize.tools.startup" = "FALSE"
-		"usb_xhci.present" = true
+		"usb_xhci.present"	= true
 	}
 }
 
@@ -561,7 +577,7 @@ build {
 
 	post-processors {
 		post-processor "vagrant" {
-			keep_input_artifact = false
+			keep_input_artifact = true
 			include = [var.box_info_file]
 			output = "${var.box_output_dir}/${var.box_output_file}"
 			vagrantfile_template = var.vagrantfile_template

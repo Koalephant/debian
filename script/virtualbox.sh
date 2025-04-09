@@ -67,6 +67,11 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 		fi
 	fi
 
+	if ! command -v VBoxControl > /dev/null; then
+		printf -- '==> Virtualbox guest additions install failed'
+		exit 1
+	fi
+
 	printf -- '- VirtualBox Guest Additions version %s\n' "$(VBoxControl -v)" > /tmp/guest-additions-version.txt
 	rm -frv "/home/${SSH_USER:?}/${VIRTUALBOX_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual/" "/home/${SSH_USER}/.vbox_version"
 fi
