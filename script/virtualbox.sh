@@ -30,6 +30,20 @@ install_from_iso() {
 }
 
 if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
+
+	if [ -d /sys/firmware/efi ]; then
+		printf -- '==> Copying EFI boot manager to fallback position because VirtualBox EFI is flaky\n'
+		(
+			cd /boot/efi/EFI
+			mkdir -p boot
+			for f in debian/grub*.efi; do
+				if [ -f "$f" ]; then
+					cp "$f" "boot/boot${f#debian/grub}"
+				fi
+			done
+		)
+	fi
+
 	case "$(printf -- '%s' "${GUEST_TOOLS:-}" | tr '[:upper:]' '[:lower:]')" in
 		(true|yes|on|1)
 			printf -- '==> Installing Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
@@ -67,7 +81,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 		fi
 	fi
 
-	if ! command -v VBoxControl > /dev/null; then
+	if ! command -v VBoxControl > /dev/null || ! modinfo vboxsf > /dev/null 2>&1; then
 		printf -- '==> Virtualbox guest additions install failed'
 		exit 1
 	fi

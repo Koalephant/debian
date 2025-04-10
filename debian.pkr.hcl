@@ -339,6 +339,10 @@ local iso_path_name {
 	expression = "${local.iso_path}/${var.iso_name}"
 }
 
+local checksum_path_name {
+	expression = "file:${local.iso_path}/sha256sums"
+}
+
 local "iso_urls" {
 	expression = [
 		local.iso_path_name,
@@ -435,7 +439,7 @@ source "virtualbox-iso" "virtualbox" {
 	headless = var.headless
 	http_directory = local.http_dir
 	iso_interface = "virtio"
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum	= "${local.checksum_path_name}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
@@ -449,6 +453,7 @@ source "virtualbox-iso" "virtualbox" {
 	vboxmanage = [
 		["modifyvm", "{{ .Name }}", "--chipset", var.virtualbox_chipset],
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
+		["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
 		["modifyvm", "{{ .Name }}", "--boot1", "disk"],
 		["modifyvm", "{{ .Name }}", "--boot2", "dvd"],
 		["modifyvm", "{{ .Name }}", "--usb-xhci", "on"],

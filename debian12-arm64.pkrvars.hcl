@@ -2,3 +2,4 @@ iso_checksum = "http://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/
 iso_name = "debian-12.10.0-arm64-DVD-1.iso"
 iso_url = "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-12.10.0-arm64-DVD-1.iso"
 vmware_guest_os_type = "arm-debian12-64"
+virtualbox_guest_os_type = "Debian12_arm64"
