@@ -415,7 +415,6 @@ source "parallels-iso" "parallels" {
 		["set", "{{ .Name }}", "--smart-mount", "off"],
 		["set", "{{ .Name }}", "--sync-host-printers", "off"],
 		["set", "{{ .Name }}", "--auto-share-camera", "off"],
-		["set", "{{ .Name }}", "--auto-share-bluetooth", "off"],
 		["set", "{{ .Name }}", "--time-sync", "off"],
 		["set", "{{ .Name }}", "--disable-timezone-sync", "on"],
 		["set", "{{ .Name }}", "--autostop", "shutdown"]
