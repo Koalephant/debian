@@ -19,6 +19,11 @@ packer {
 	}
 }
 
+variable "box_organisation" {
+	type = string
+	default = "koalephant"
+}
+
 variable "box_output_dir" {
 	type = string
 }
