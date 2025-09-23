@@ -443,7 +443,7 @@ source "virtualbox-iso" "virtualbox" {
 	headless = var.headless
 	http_directory = local.http_dir
 	iso_interface = "virtio"
-	iso_checksum	= "${local.checksum_path_name}"
+	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
