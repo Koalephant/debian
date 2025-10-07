@@ -424,7 +424,7 @@ source "parallels-iso" "parallels" {
 	ssh_password = var.ssh_password
 	ssh_timeout = "10000s"
 	ssh_username = var.ssh_username
-	vm_name = var.box_name
+	vm_name = "${var.box_name}-${var.box_arch}"
 }
 
 source "virtualbox-iso" "virtualbox" {
@@ -467,7 +467,7 @@ source "virtualbox-iso" "virtualbox" {
 		["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
 	]
 	virtualbox_version_file = ".vbox_version"
-	vm_name = var.box_name
+	vm_name = "${var.box_name}-${var.box_arch}"
 }
 
 source "vmware-iso" "vmware" {
@@ -494,7 +494,7 @@ source "vmware-iso" "vmware" {
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
-	vm_name = var.box_name
+	vm_name = "${var.box_name}-${var.box_arch}"
 	vmx_data = {
 		"suspend.disabled"	= true,
 		"svga.autodetect" = true,
