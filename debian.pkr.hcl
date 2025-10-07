@@ -585,7 +585,6 @@ build {
 
 	post-processors {
 		post-processor "vagrant" {
-			include = [var.box_info_file]
 			output = "${var.box_output_dir}/${var.box_output_file}"
 			vagrantfile_template = var.vagrantfile_template
 		}
