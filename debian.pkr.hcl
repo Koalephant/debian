@@ -402,7 +402,7 @@ source "parallels-iso" "parallels" {
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
-	output_directory = "output-${var.box_name}-parallels-iso"
+	output_directory = "output-${var.box_name}-${var.box_arch}-parallels-iso"
 	parallels_tools_flavor = var.parallels_guest_tools
 	parallels_tools_guest_path = var.parallels_guest_tools_iso
 	parallels_tools_mode = "upload"
@@ -447,7 +447,7 @@ source "virtualbox-iso" "virtualbox" {
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
 	memory = var.memory
-	output_directory = "output-${var.box_name}-virtualbox-iso"
+	output_directory = "output-${var.box_name}-${var.box_arch}-virtualbox-iso"
 	post_shutdown_delay = "1m"
 	shutdown_command = "sudo shutdown -h now"
 	ssh_password	= var.ssh_password
@@ -485,7 +485,7 @@ source "vmware-iso" "vmware" {
 	memory = var.memory
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
-	output_directory = "output-${var.box_name}-vmware-iso"
+	output_directory = "output-${var.box_name}-${var.box_arch}-vmware-iso"
 	shutdown_command = "sudo shutdown -h now"
 	ssh_password	= var.ssh_password
 	ssh_timeout = "10000s"
