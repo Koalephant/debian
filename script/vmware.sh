@@ -90,6 +90,8 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 					printf -- '%s\n' open-vm-dkms open-vm-tools-dkms | xargs -n 1 apt-cache --generate pkgnames | xargs apt-get -y install
 				fi
 			else
+				printf -- '==> Installing Source Provided Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
+
 				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
 			fi
 
