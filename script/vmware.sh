@@ -92,7 +92,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 			else
 				printf -- '==> Installing Source Provided Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"
 
-				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
+				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/"
 			fi
 
 			printf -- '- Open VM Tools (VMWare) version %s\n' "$(vmtoolsd -v | cut -d ' ' -f 5)" > /tmp/guest-additions-version.txt
