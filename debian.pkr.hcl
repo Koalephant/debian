@@ -535,6 +535,7 @@ build {
 		expect_disconnect = true
 		scripts = [
 			"script/set-apt-sources.sh",
+			"script/base-packages.sh",
 			"script/systemd.sh",
 			"script/grub.sh",
 			"script/lvm.sh",
