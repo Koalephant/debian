@@ -62,6 +62,11 @@ variable "pugilist_url_base" {
 	default = "https://boxes.storage.koalephant.com"
 }
 
+variable "pugilist_enable" {
+	type = bool
+	default = false
+}
+
 variable "apt_backports" {
 	type = bool
 	default = true

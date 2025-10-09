@@ -2,3 +2,4 @@ iso_checksum = "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd
 iso_name = "debian-13.1.0-arm64-DVD-1.iso"
 iso_url = "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.1.0-arm64-DVD-1.iso"
 vmware_guest_os_type = "arm-debian13-64"
+pugilist_enable = true
