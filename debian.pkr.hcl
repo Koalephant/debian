@@ -302,8 +302,8 @@ variable "box_version" {
 }
 
 variable "box_version_description" {
-	type = string
-	default = ""
+	type = list(string)
+	default = []
 }
 
 variable "box_description" {
