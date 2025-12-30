@@ -74,7 +74,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 
 		(*)
 			printf -- '==> Skipping Guest Tools install for %s\n' "${PACKER_BUILDER_TYPE}"
-			printf -- '- VMWare Tools not installed' > /tmp/guest-additions-version.txt
+			printf -- 'VMWare Tools not installed' > /tmp/guest-additions-version.txt
 			exit 0
 		;;
 	esac
@@ -95,17 +95,17 @@ if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
 				vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/"
 			fi
 
-			printf -- '- Open VM Tools (VMWare) version %s\n' "$(vmtoolsd -v | cut -d ' ' -f 5)" > /tmp/guest-additions-version.txt
+			printf -- 'Open VM Tools (VMWare) version %s\n' "$(vmtoolsd -v | cut -d ' ' -f 5)" > /tmp/guest-additions-version.txt
 			mkdir -p /mnt/hgfs
 		;;
 	esac
 
 	if ! command -v vmware-toolbox-cmd > /dev/null; then
 		if vmware_tools_iso "/home/${SSH_USER}/tools-manual/${VMWARE_GUEST_TOOLS_ISO}" "/home/${SSH_USER}/${VMWARE_GUEST_TOOLS_ISO}"; then
-			printf -- '- VMWare Tools version %s\n' "$(vmware-toolbox-cmd -v | cut -d ' ' -f 1)" > /tmp/guest-additions-version.txt
+			printf -- 'VMWare Tools version %s\n' "$(vmware-toolbox-cmd -v | cut -d ' ' -f 1)" > /tmp/guest-additions-version.txt
 		else
 			vmware_tools_source "/home/${SSH_USER}/tools-manual/open-vm-tools/open-vm-tools/"
-			printf -- '- Open VM Tools (VMWare) version %s\n' "$(vmtoolsd -v | cut -d ' ' -f 5)" > /tmp/guest-additions-version.txt
+			printf -- 'Open VM Tools (VMWare) version %s\n' "$(vmtoolsd -v | cut -d ' ' -f 5)" > /tmp/guest-additions-version.txt
 		fi
 	fi
 

@@ -10,7 +10,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 
 		(*)
 			printf -- '==> Skipping Guest Tools install for %s\n' "${PACKER_BUILDER_TYPE}"
-			printf -- '- Parallels Tools not installed' > /tmp/guest-additions-version.txt
+			printf -- 'Parallels Tools not installed' > /tmp/guest-additions-version.txt
 			exit 0
 		;;
 	esac
@@ -27,6 +27,6 @@ if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
 	/mnt/tools/"${PARALLELS_GUEST_TOOLS_INSTALLER}" --install-unattended
 	umount /mnt/tools
 	rmdir /mnt/tools
-	printf -- '- Parallels Tools version %s\n' "$(prltoolsd  -V | cut -f 3 -d ' ')" > /tmp/guest-additions-version.txt
+	printf -- 'Parallels Tools version %s\n' "$(prltoolsd  -V | cut -f 3 -d ' ')" > /tmp/guest-additions-version.txt
 	rm -frv "/home/${SSH_USER:?}/${PARALLELS_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual" "/home/${SSH_USER}/.prlctl_version"
 fi

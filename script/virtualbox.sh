@@ -51,7 +51,7 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 
 		(*)
 			printf -- '==> Skipping Guest Tools install for %s\n' "${PACKER_BUILDER_TYPE}"
-			printf -- '- VirtualBox Guest Additions not installed\n' > /tmp/guest-additions-version.txt
+			printf -- 'VirtualBox Guest Additions not installed\n' > /tmp/guest-additions-version.txt
 			exit 0
 		;;
 	esac
@@ -86,6 +86,6 @@ if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
 		exit 1
 	fi
 
-	printf -- '- VirtualBox Guest Additions version %s\n' "$(VBoxControl -v)" > /tmp/guest-additions-version.txt
+	printf -- 'VirtualBox Guest Additions version %s\n' "$(VBoxControl -v)" > /tmp/guest-additions-version.txt
 	rm -frv "/home/${SSH_USER:?}/${VIRTUALBOX_GUEST_TOOLS_ISO:?}" "/home/${SSH_USER}/tools-manual/" "/home/${SSH_USER}/.vbox_version"
 fi
