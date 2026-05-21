@@ -255,6 +255,11 @@ variable "vmware_guest_os_type" {
 	default = ""
 }
 
+variable "vmware_guest_tools" {
+	type = string
+	default = "linux"
+}
+
 variable "vmware_guest_tools_iso" {
 	type = string
 	default = "vmware-tools-lin.iso"
@@ -264,6 +269,7 @@ variable "vmware_guest_tools_installer" {
 	type = string
 	default = "vmware-install.pl"
 }
+
 
 variable "vmware_hardware_version" {
 	type = number
@@ -415,12 +421,6 @@ local "iso_urls" {
 		local.iso_path_name,
 		var.iso_url
 	]
-}
-
-local "vmware_guest_tools_flavours" {
-	expression = {
-		"vmware" = "",
-	}
 }
 
 local environment_vars {
@@ -585,7 +585,7 @@ source "vmware-iso" "vmware" {
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
 	tools_mode = "upload"
-	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
+	tools_upload_flavor = var.vmware_guest_tools
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
