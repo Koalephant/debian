@@ -584,7 +584,7 @@ source "vmware-iso" "vmware" {
 	headless = var.headless
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
-	tools_mode = "upload"
+	tools_mode = "disable"
 	tools_upload_flavor = var.vmware_guest_tools
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
