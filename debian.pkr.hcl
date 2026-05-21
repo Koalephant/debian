@@ -573,6 +573,7 @@ source "virtualbox-iso" "virtualbox" {
 	# Commands
 	post_shutdown_delay = "1m"
 	boot_command = var.boot_command
+	boot_keygroup_interval = "500ms"
 	shutdown_command = local.shutdown_command
 	# Communicator args
 	ssh_password = var.ssh_password

@@ -1,11 +1,13 @@
 boot_command = [
 	"<wait>e<wait><down><down><down><end><wait><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs> <wait> ",
-	"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-	"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 kbd-chooser/method=us keyboard-configuration/xkb-keymap=us ",
-	"fb=false debconf/frontend=noninteractive console-setup/ask_detect=false console-keymaps-at/keymap=us ",
-	"netcfg/get_hostname=vagrant netcfg/get_domain=vm grub-installer/bootdev=/dev/sda ",
+	"install auto=true priority=critical<wait> preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+	"debian-installer=en_US.UTF-8 <wait>locale=en_US.UTF-8 kbd-chooser/method=us <wait>",
+	"keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/xkb-keymap=us <wait>",
+	"keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+	"netcfg/get_hostname=vagrant <wait>netcfg/get_domain=vagrant <wait>",
+	"debconf/frontend=noninteractive <wait>console-setup/ask_detect=false <wait>console-keymaps-at/keymap=us fb=false<wait>",
 	" --- quiet",
-	"<f10>"
+	"<f10><wait>"
 ]
 parallels_guest_tools = "lin-arm"
 parallels_guest_tools_iso = "prl-tools-lin-arm.iso"
