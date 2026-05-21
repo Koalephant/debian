@@ -2,7 +2,7 @@
 
 SSH_USER="${SSH_USERNAME:-vagrant}"
 
-if [ "${PACKER_BUILDER_TYPE}" = 'parallels-iso' ]; then
+if [ "${BOX_PROVIDER}" = 'parallels' ]; then
 	case "$(printf "%s" "${GUEST_TOOLS:-}" | tr '[:upper:]' '[:lower:]')" in
 		(true|yes|on|1)
 			printf -- '==> Installing Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"

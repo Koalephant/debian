@@ -66,7 +66,7 @@ vmware_tools_iso() {
 	return 1
 }
 
-if [ "${PACKER_BUILDER_TYPE}" = 'vmware-iso' ]; then
+if [ "${BOX_PROVIDER}" = 'vmware' ]; then
 	case "$(printf -- '%s' "${GUEST_TOOLS:-}" | tr '[:upper:]' '[:lower:]')" in
 		(true|yes|on|1)
 			printf -- '==> Installing Guest Tools for %s\n' "${PACKER_BUILDER_TYPE}"

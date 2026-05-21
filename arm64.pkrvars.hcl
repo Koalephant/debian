@@ -6,6 +6,7 @@ boot_command_post = [
 	"<f10>"
 ]
 parallels_guest_tools = "lin-arm"
+parallels_guest_tools_iso = "prl-tools-lin-arm.iso"
 vmware_hardware_version = 20
 vmware_guest_os_type = "arm-debian-64"
 vmware_disk_type = "sata"
@@ -16,4 +17,5 @@ virtualbox_gfx_controller = "vmsvga"
 virtualbox_chipset = "armv8virtual"
 virtualbox_firmware = "efi"
 virtualbox_guest_tools_installer = "VBoxLinuxAdditions-arm64.run"
-parallels_guest_tools_iso = "prl-tools-lin-arm.iso"
+qemu_efi_firmware = "/opt/local/share/qemu/edk2-aarch64-code.fd"
+qemu_system_binary = "qemu-system-aarch64"

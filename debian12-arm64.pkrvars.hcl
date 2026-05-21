@@ -1,5 +1,5 @@
-iso_checksum = "https://cdimage.debian.org/cdimage/archive/12.12.0/arm64/iso-dvd/SHA256SUMS"
-iso_name = "debian-12.12.0-arm64-DVD-1.iso"
-iso_url = "https://cdimage.debian.org/cdimage/archive/12.12.0/arm64/iso-dvd/debian-12.12.0-arm64-DVD-1.iso"
+iso_checksum = "https://cdimage.debian.org/cdimage/archive/12.14.0/arm64/iso-dvd/SHA256SUMS"
+iso_name = "debian-12.14.0-arm64-DVD-1.iso"
+iso_url = "https://cdimage.debian.org/cdimage/archive/12.14.0/arm64/iso-dvd/debian-12.14.0-arm64-DVD-1.iso"
 vmware_guest_os_type = "arm-debian12-64"
 virtualbox_guest_os_type = "Debian12_arm64"

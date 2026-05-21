@@ -16,12 +16,24 @@ packer {
 			version = ">= 1.0.0"
 			source = "github.com/hashicorp/vmware"
 		}
+		qemu = {
+			version = "~> 1"
+			source  = "github.com/hashicorp/qemu"
+		}
 	}
 }
 
 variable "box_organisation" {
 	type = string
 	default = "koalephant"
+}
+
+variable "box_temp_dir" {
+	type = string
+}
+
+local "box_build_dir" {
+	expression = "${var.box_temp_dir}/build"
 }
 
 variable "box_output_dir" {
@@ -34,6 +46,18 @@ variable "box_output_file" {
 
 variable "box_info_file" {
 	type = string
+}
+
+local "box_info_template" {
+	expression = {
+		name = var.box_name,
+		organisation = var.box_organisation,
+		description = var.box_description,
+		version = var.box_version,
+		provider = var.box_provider,
+		arch = var.box_arch,
+		contact = "packaging@koalephant.com"
+	}
 }
 
 variable "box_version_file" {
@@ -256,6 +280,30 @@ variable "vmware_disk_type" {
 	default = "ide"
 }
 
+variable "qemu_accelerator" {
+	type = string
+	default = "hvf"
+}
+
+variable "qemu_machine_type" {
+	type = string
+	default = "virt"
+}
+
+variable "qemu_system_binary" {
+	type = string
+	default = ""
+}
+
+variable "qemu_efi_firmware" {
+	type = string
+	default = ""
+}
+
+local "qemu_efi_vars" {
+	expression = "${var.box_temp_dir}/efi-vars.raw"
+}
+
 variable "preseed" {
 	type = string
 	default = "preseed.cfg"
@@ -274,6 +322,11 @@ variable "ssh_password" {
 variable "ssh_username" {
 	type = string
 	default = "vagrant"
+}
+
+variable "ssh_timeout" {
+	type = string
+	default = "10000s"
 }
 
 variable "update" {
@@ -333,6 +386,10 @@ local "boot_command" {
 	)
 }
 
+local "shutdown_command" {
+	expression = "sudo shutdown -h now"
+}
+
 local "http_dir" {
 	expression = "http"
 }
@@ -373,6 +430,7 @@ local environment_vars {
 		"APT_UPDATES=${var.apt_updates}",
 		"BOX_ORG=${var.vagrantcloud_org}",
 		"BOX_VERSION=${var.box_version}",
+		"BOX_PROVIDER=${var.box_provider}",
 		"GUEST_TOOLS=${var.guest_tools}",
 		"GUEST_TOOLS_DISTRO=${var.guest_tools_distro}",
 		"INSTALL_VAGRANT_KEY=${var.install_vagrant_key}",
@@ -397,20 +455,47 @@ local environment_vars {
 	]
 }
 
-source "parallels-iso" "parallels" {
-	boot_command	= local.boot_command
+source "qemu" "qemu" {
+	# Qemu args
+	efi_boot = true
+	display = "cocoa"
+	efi_firmware_code = var.qemu_efi_firmware
+	efi_firmware_vars = local.qemu_efi_vars
+	accelerator = var.qemu_accelerator
+	machine_type = var.qemu_machine_type
+	cpu_model = "host"
+	format = "qcow2"
+	net_device = "virtio-net"
+	disk_interface = "virtio"
+	headless = false
+	qemu_binary = var.qemu_system_binary
+	# Basic VM args
 	cpus = var.cpus
+	memory = var.memory
 	disk_size = var.disk_size
-	guest_os_type = var.parallels_guest_os_type
+	# Installer args
 	http_directory = local.http_dir
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
 	iso_target_path = local.iso_path_name
 	iso_urls = local.iso_urls
-	memory = var.memory
-	output_directory = "output-${var.box_name}-${var.box_arch}-parallels-iso"
+	output_directory = local.box_build_dir
+	# Commands
+	boot_command = local.boot_command
+	shutdown_command = local.shutdown_command
+	# Communicator args
+	ssh_password = var.ssh_password
+	ssh_timeout = var.ssh_timeout
+	ssh_username = var.ssh_username
+	vm_name = "${var.box_name}-${var.box_arch}"
+}
+
+source "parallels-iso" "parallels" {
+	# Parallels args
+	prlctl_version_file = ".prlctl_version"
 	parallels_tools_flavor = var.parallels_guest_tools
 	parallels_tools_guest_path = var.parallels_guest_tools_iso
 	parallels_tools_mode = "upload"
+	guest_os_type = var.parallels_guest_os_type
 	prlctl = [
 		["set", "{{ .Name }}", "--shf-host-defined", "off"],
 		["set", "{{ .Name }}", "--shared-profile", "off"],
@@ -424,19 +509,28 @@ source "parallels-iso" "parallels" {
 		["set", "{{ .Name }}", "--disable-timezone-sync", "on"],
 		["set", "{{ .Name }}", "--autostop", "shutdown"]
 	]
-	prlctl_version_file = ".prlctl_version"
-	shutdown_command = "sudo shutdown -h now"
+	# Basic VM args
+	cpus = var.cpus
+	memory = var.memory
+	disk_size = var.disk_size
+	# Installer args
+	http_directory = local.http_dir
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_target_path = local.iso_path_name
+	iso_urls = local.iso_urls
+	output_directory = local.box_build_dir
+	# Commands
+	boot_command = local.boot_command
+	shutdown_command = local.shutdown_command
+	# Communicator args
 	ssh_password = var.ssh_password
-	ssh_timeout = "10000s"
+	ssh_timeout = var.ssh_timeout
 	ssh_username = var.ssh_username
 	vm_name = "${var.box_name}-${var.box_arch}"
 }
 
 source "virtualbox-iso" "virtualbox" {
-	boot_command	= local.boot_command
-	bundle_iso = true
-	cpus = var.cpus
-	disk_size = var.disk_size
+	# VirtualBox args
 	firmware = var.virtualbox_firmware
 	#chipset = var.virtualbox_chipset
 	guest_additions_mode = "upload"
@@ -445,19 +539,9 @@ source "virtualbox-iso" "virtualbox" {
 	gfx_controller = var.virtualbox_gfx_controller
 	gfx_vram_size = "22"
 	hard_drive_interface = "virtio"
-	headless = var.headless
-	http_directory = local.http_dir
 	iso_interface = "virtio"
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
-	iso_target_path = local.iso_path_name
-	iso_urls = local.iso_urls
-	memory = var.memory
-	output_directory = "output-${var.box_name}-${var.box_arch}-virtualbox-iso"
-	post_shutdown_delay = "1m"
-	shutdown_command = "sudo shutdown -h now"
-	ssh_password	= var.ssh_password
-	ssh_timeout = "10000s"
-	ssh_username	= var.ssh_username
+	bundle_iso = true
+	headless = var.headless
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
 		["modifyvm", "{{ .Name }}", "--chipset", var.virtualbox_chipset],
@@ -471,37 +555,41 @@ source "virtualbox-iso" "virtualbox" {
 		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
 		["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
 	]
-	virtualbox_version_file = ".vbox_version"
+	# Basic VM args
+	cpus = var.cpus
+	disk_size = var.disk_size
+	memory = var.memory
+	# Installer args
+	http_directory = local.http_dir
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_target_path = local.iso_path_name
+	iso_urls = local.iso_urls
+	output_directory = local.box_build_dir
+	# Commands
+	post_shutdown_delay = "1m"
+	boot_command = local.boot_command
+	shutdown_command = local.shutdown_command
+	# Communicator args
+	ssh_password = var.ssh_password
+	ssh_timeout = var.ssh_timeout
+	ssh_username = var.ssh_username
 	vm_name = "${var.box_name}-${var.box_arch}"
 }
 
 source "vmware-iso" "vmware" {
-	boot_command	= local.boot_command
+	# VMWare args
 	cdrom_adapter_type = var.vmware_disk_type
-	cpus = var.cpus
 	disk_adapter_type = var.vmware_disk_type
-	disk_size = var.disk_size
 	guest_os_type = var.vmware_guest_os_type
 	headless = var.headless
-	http_directory = local.http_dir
-	iso_checksum	= "${var.iso_checksum_type}:${var.iso_checksum}"
-	iso_target_path = local.iso_path_name
-	iso_urls = local.iso_urls
-	memory = var.memory
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
-	output_directory = "output-${var.box_name}-${var.box_arch}-vmware-iso"
-	shutdown_command = "sudo shutdown -h now"
-	ssh_password	= var.ssh_password
-	ssh_timeout = "10000s"
-	ssh_username	= var.ssh_username
 	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
 	vnc_bind_address = "0.0.0.0"
-	vm_name = "${var.box_name}-${var.box_arch}"
 	vmx_data = {
-		"suspend.disabled"	= true,
+		"suspend.disabled" = true,
 		"svga.autodetect" = true,
 		"time.synchronize.continue" = "FALSE"
 		"time.synchronize.restore" = "FALSE"
@@ -510,15 +598,34 @@ source "vmware-iso" "vmware" {
 		"time.synchronize.shrink" = "FALSE"
 		"time.synchronize.tools.enable" = "FALSE"
 		"time.synchronize.tools.startup" = "FALSE"
-		"usb_xhci.present"	= true
+		"usb_xhci.present" = true
 	}
+	# Basic VM args
+	cpus = var.cpus
+	memory = var.memory
+	disk_size = var.disk_size
+	# Installer args
+	http_directory = local.http_dir
+	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+	iso_target_path = local.iso_path_name
+	iso_urls = local.iso_urls
+	output_directory = local.box_build_dir
+	# Commands
+	boot_command = local.boot_command
+	shutdown_command = local.shutdown_command
+	# Communicator args
+	ssh_password = var.ssh_password
+	ssh_timeout = var.ssh_timeout
+	ssh_username = var.ssh_username
+	vm_name = "${var.box_name}-${var.box_arch}"
 }
 
 build {
 	sources = [
 		"source.parallels-iso.parallels",
 		"source.virtualbox-iso.virtualbox",
-		"source.vmware-iso.vmware"
+		"source.vmware-iso.vmware",
+		"source.qemu.qemu"
 	]
 
 	provisioner "shell-local" {
@@ -593,6 +700,7 @@ build {
 		post-processor "vagrant" {
 			output = "${var.box_output_dir}/${var.box_output_file}"
 			vagrantfile_template = var.vagrantfile_template
+
 		}
 	}
 

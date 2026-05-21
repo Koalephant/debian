@@ -7,3 +7,4 @@ boot_command_post = [
 ]
 parallels_guest_tools = "lin"
 virtualbox_guest_os_type = "Debian"
+qemu_system_binary = "qemu-system-i386"

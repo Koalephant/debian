@@ -29,7 +29,7 @@ install_from_iso() {
 	rm -rf "${tempdir}"
 }
 
-if [ "${PACKER_BUILDER_TYPE}" = 'virtualbox-iso' ]; then
+if [ "${BOX_PROVIDER}" = 'virtualbox' ]; then
 
 	if [ -d /sys/firmware/efi ]; then
 		printf -- '==> Copying EFI boot manager to fallback position because VirtualBox EFI is flaky\n'

@@ -8,3 +8,4 @@ boot_command_post = [
 parallels_guest_tools = "lin"
 virtualbox_guest_os_type = "Debian_64"
 virtualbox_gfx_controller = "vboxvga"
+qemu_system_binary = "qemu-system-x86_64"
