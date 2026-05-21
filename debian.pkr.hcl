@@ -267,7 +267,7 @@ variable "vmware_guest_tools_installer" {
 
 variable "vmware_hardware_version" {
 	type = number
-	default = 13
+	default = 19
 }
 
 variable "vmware_nic_type" {
@@ -584,6 +584,7 @@ source "vmware-iso" "vmware" {
 	headless = var.headless
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
+	tools_mode = "upload"
 	tools_upload_flavor = lookup(local.vmware_guest_tools_flavours, var.guest_tools_distro, "linux")
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
