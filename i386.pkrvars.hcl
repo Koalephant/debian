@@ -1,7 +1,8 @@
-boot_command_pre = [
-	"<esc><wait>"
-]
-boot_command_post = [
+boot_command = [
+	"<esc><wait>",
+	"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+	"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
+	"netcfg/get_hostname=vagrant netcfg/get_domain=vm ",
 	"vga=normal fb=false ",
 	"<enter>"
 ]

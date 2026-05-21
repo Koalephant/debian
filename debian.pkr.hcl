@@ -370,27 +370,32 @@ variable "box_description" {
 	default = ""
 }
 
-variable "boot_command_pre" {
+# variable "boot_command_pre" {
+# 	type = list(string)
+# 	default = []
+# }
+#
+# variable "boot_command_post" {
+# 	type = list(string)
+# 	default = []
+# }
+
+variable "boot_command" {
 	type = list(string)
 	default = []
 }
 
-variable "boot_command_post" {
-	type = list(string)
-	default = []
-}
-
-local "boot_command" {
-	expression = concat(
-		var.boot_command_pre,
-		[
-			"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/${var.preseed} ",
-			"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
-			"netcfg/get_hostname=vagrant netcfg/get_domain=vm "
-		],
-		var.boot_command_post
-	)
-}
+# local "boot_command" {
+# 	expression = concat(
+# 		var.boot_command_pre,
+# 		[
+# 			"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+# 			"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
+# 			"netcfg/get_hostname=vagrant netcfg/get_domain=vm "
+# 		],
+# 		var.boot_command_post
+# 	)
+# }
 
 local "shutdown_command" {
 	expression = "sudo shutdown -h now"
@@ -480,7 +485,7 @@ source "qemu" "qemu" {
 	iso_urls = local.iso_urls
 	output_directory = local.box_build_dir
 	# Commands
-	boot_command = local.boot_command
+	boot_command = var.boot_command
 	shutdown_command = local.shutdown_command
 	# Communicator args
 	ssh_password = var.ssh_password
@@ -520,7 +525,7 @@ source "parallels-iso" "parallels" {
 	iso_urls = local.iso_urls
 	output_directory = local.box_build_dir
 	# Commands
-	boot_command = local.boot_command
+	boot_command = var.boot_command
 	shutdown_command = local.shutdown_command
 	# Communicator args
 	ssh_password = var.ssh_password
@@ -567,7 +572,7 @@ source "virtualbox-iso" "virtualbox" {
 	output_directory = local.box_build_dir
 	# Commands
 	post_shutdown_delay = "1m"
-	boot_command = local.boot_command
+	boot_command = var.boot_command
 	shutdown_command = local.shutdown_command
 	# Communicator args
 	ssh_password = var.ssh_password
@@ -612,7 +617,7 @@ source "vmware-iso" "vmware" {
 	iso_urls = local.iso_urls
 	output_directory = local.box_build_dir
 	# Commands
-	boot_command = local.boot_command
+	boot_command = var.boot_command
 	shutdown_command = local.shutdown_command
 	# Communicator args
 	ssh_password = var.ssh_password
