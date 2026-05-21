@@ -91,6 +91,12 @@ variable "pugilist_enable" {
 	default = false
 }
 
+variable "pugilist_version" {
+	type = string
+	default = ""
+}
+
+
 variable "apt_backports" {
 	type = bool
 	default = true
@@ -366,6 +372,11 @@ variable "box_version_description" {
 }
 
 variable "box_description" {
+	type = string
+	default = ""
+}
+
+variable "box_short_description" {
 	type = string
 	default = ""
 }
