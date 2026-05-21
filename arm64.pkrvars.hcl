@@ -1,8 +1,9 @@
 boot_command = [
-	"<wait>e<wait><down><down><down><end><wait><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs> <wait>",
-		"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-		"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
-		"netcfg/get_hostname=vagrant netcfg/get_domain=vm ",
+	"<wait>e<wait><down><down><down><end><wait><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs> <wait> ",
+	"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+	"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 kbd-chooser/method=us keyboard-configuration/xkb-keymap=us ",
+	"fb=false debconf/frontend=noninteractive console-setup/ask_detect=false console-keymaps-at/keymap=us ",
+	"netcfg/get_hostname=vagrant netcfg/get_domain=vm grub-installer/bootdev=/dev/sda ",
 	" --- quiet",
 	"<f10>"
 ]
