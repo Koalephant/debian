@@ -13,8 +13,8 @@ packer {
 			source = "github.com/hashicorp/vagrant"
 		}
 		vmware = {
-			version = ">= 1.0.0"
-			source = "github.com/hashicorp/vmware"
+			version = "= 1.2.0"
+			source = "github.com/vmware/vmware"
 		}
 		qemu = {
 			version = "~> 1"
@@ -257,7 +257,7 @@ variable "vmware_guest_os_type" {
 
 variable "vmware_guest_tools" {
 	type = string
-	default = "linux"
+	default = ""
 }
 
 variable "vmware_guest_tools_iso" {
@@ -584,7 +584,7 @@ source "vmware-iso" "vmware" {
 	headless = var.headless
 	network = "nat"
 	network_adapter_type = var.vmware_nic_type
-	tools_mode = "disable"
+	# tools_mode = "disable"
 	tools_upload_flavor = var.vmware_guest_tools
 	tools_upload_path = "vmware-tools-lin.iso"
 	version = var.vmware_hardware_version
