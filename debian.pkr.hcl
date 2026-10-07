@@ -523,7 +523,7 @@ source "parallels-iso" "parallels" {
 
 source "virtualbox-iso" "virtualbox" {
 	# VirtualBox args
-	firmware = var.virtualbox_firmware
+	#firmware = var.virtualbox_firmware
 	#chipset = var.virtualbox_chipset
 	guest_additions_mode = "upload"
 	guest_additions_path = var.virtualbox_guest_tools_iso
@@ -536,6 +536,7 @@ source "virtualbox-iso" "virtualbox" {
 	headless = var.headless
 	vrdp_bind_address = "0.0.0.0"
 	vboxmanage = [
+		["modifyvm", "{{ .Name }}", "--firmware", var.virtualbox_firmware],
 		["modifyvm", "{{ .Name }}", "--chipset", var.virtualbox_chipset],
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
 		["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
@@ -547,7 +548,6 @@ source "virtualbox-iso" "virtualbox" {
 		["modifyvm", "{{ .Name }}", "--mouse", "usb"],
 		["modifyvm", "{{ .Name }}", "--graphicscontroller", var.virtualbox_gfx_controller],
 		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
-		["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
 	]
 	# Basic VM args
 	cpus = var.cpus
