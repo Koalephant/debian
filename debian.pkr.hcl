@@ -422,6 +422,7 @@ local environment_vars {
 		"BOX_ARCH=${var.box_arch}",
 		"BOX_VERSION=${var.box_version}",
 		"BOX_PROVIDER=${var.box_provider}",
+		"BOX_SHORT_DESCRIPTION=${var.box_short_description}",
 		"GUEST_TOOLS=${var.guest_tools}",
 		"GUEST_TOOLS_DISTRO=${var.guest_tools_distro}",
 		"INSTALL_VAGRANT_KEY=${var.install_vagrant_key}",
