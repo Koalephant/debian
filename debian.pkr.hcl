@@ -548,6 +548,7 @@ source "virtualbox-iso" "virtualbox" {
 		["modifyvm", "{{ .Name }}", "--mouse", "usb"],
 		["modifyvm", "{{ .Name }}", "--graphicscontroller", var.virtualbox_gfx_controller],
 		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
+		["storagectl", "{{.Name}}", "--name", "IDE", "--remove"]
 	]
 	# Basic VM args
 	cpus = var.cpus
