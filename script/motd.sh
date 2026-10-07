@@ -3,6 +3,8 @@
 printf -- '==> %s\n' 'Recording box generation date'
 date > /etc/vagrant_box_build_date
 
+printf -- "BOX_NAME='%s'\nBOX_VERSION='%s'\nBOX_ARCH='%s'\nBOX_PROVIDER='%s'\nBOX_BUILD_DATE='%s'" "${BOX_ORG}/${BOX_NAME}" "${BOX_VERSION}" "${BOX_ARCH}" "${BOX_PROVIDER}" "$(date +%Y-%m-%d)" > /etc/vagrant-box-info
+
 case "$(printf -- '%s' "${MOTD:-}" | tr '[:upper:]' '[:lower:]')" in
 	(true|yes|on|1)
 
@@ -13,7 +15,7 @@ case "$(printf -- '%s' "${MOTD:-}" | tr '[:upper:]' '[:lower:]')" in
 
 		printf -- '%s\n%s \\\n' '#!/bin/sh -eu' "printf -- '%-20s %s\\n'" > ${motd_original_release_file}
 
-		printf -- '\t%s \\\n' "'Vagrant Box:' '$(printf -- '%s/%s %s (%s, %s)' "${BOX_ORG}" "${VM_NAME}" "${BOX_VERSION}" "${VM_ARCH}" "${PACKER_BUILD_NAME}")'" >> ${motd_original_release_file}
+		printf -- '\t%s \\\n' "'Vagrant Box:' '$(printf -- '%s/%s %s (%s, %s)' "${BOX_ORG}" "${BOX_NAME}" "${BOX_VERSION}" "${BOX_ARCH}" "${BOX_PROVIDER}")'" >> ${motd_original_release_file}
 		printf -- '\t%s \\\n' "'Build Date:' '$(date +%Y-%m-%d)'" >> ${motd_original_release_file}
 		printf -- '\t%s \n' "'Build Release:' '$(lsb_release -sd)'" >> ${motd_original_release_file}
 		printf -- '\n' >> ${motd_original_release_file}

@@ -9,16 +9,12 @@ packer {
 			source = "github.com/hashicorp/virtualbox"
 		}
 		vagrant = {
-			version = ">= 1.0.0"
+			version = ">= 1.1.7"
 			source = "github.com/hashicorp/vagrant"
 		}
 		vmware = {
-			version = "= 1.2.0"
+			version = ">= 1.2.0"
 			source = "github.com/vmware/vmware"
-		}
-		qemu = {
-			version = "~> 1"
-			source  = "github.com/hashicorp/qemu"
 		}
 	}
 }
@@ -57,6 +53,7 @@ local "box_info_template" {
 		provider = var.box_provider,
 		arch = var.box_arch,
 		contact = "packaging@koalephant.com"
+		url = "${var.pugilist_url_base}/${var.box_name}.md"
 	}
 }
 
@@ -73,6 +70,14 @@ variable "box_name" {
 }
 
 variable "box_arch" {
+	type = string
+}
+
+variable "box_url" {
+	type = string
+}
+
+variable "box_info_url" {
 	type = string
 }
 
@@ -346,16 +351,6 @@ variable "update" {
 	default = true
 }
 
-variable "vagrantcloud_org" {
-	type = string
-	default = "${env("VAGRANT_CLOUD_ORG")}"
-}
-
-variable "vagrantcloud_token" {
-	type = string
-	default = "${env("VAGRANT_CLOUD_TOKEN")}"
-}
-
 variable "vagrantfile_template" {
 	type = string
 	default = "tpl/vagrantfile-koalephant.rb"
@@ -381,32 +376,10 @@ variable "box_short_description" {
 	default = ""
 }
 
-# variable "boot_command_pre" {
-# 	type = list(string)
-# 	default = []
-# }
-#
-# variable "boot_command_post" {
-# 	type = list(string)
-# 	default = []
-# }
-
 variable "boot_command" {
 	type = list(string)
 	default = []
 }
-
-# local "boot_command" {
-# 	expression = concat(
-# 		var.boot_command_pre,
-# 		[
-# 			"install auto=true priority=critical url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-# 			"debian-installer=en_US.UTF-8 locale=en_US.UTF-8 keymap=us ",
-# 			"netcfg/get_hostname=vagrant netcfg/get_domain=vm "
-# 		],
-# 		var.boot_command_post
-# 	)
-# }
 
 local "shutdown_command" {
 	expression = "sudo shutdown -h now"
@@ -444,7 +417,9 @@ local environment_vars {
 		"APT_BACKPORTS=${var.apt_backports}",
 		"APT_MIRROR=${var.apt_mirror}",
 		"APT_UPDATES=${var.apt_updates}",
-		"BOX_ORG=${var.vagrantcloud_org}",
+		"BOX_ORG=${var.box_organisation}",
+		"BOX_NAME=${var.box_name}",
+		"BOX_ARCH=${var.box_arch}",
 		"BOX_VERSION=${var.box_version}",
 		"BOX_PROVIDER=${var.box_provider}",
 		"GUEST_TOOLS=${var.guest_tools}",
@@ -471,39 +446,39 @@ local environment_vars {
 	]
 }
 
-source "qemu" "qemu" {
-	# Qemu args
-	efi_boot = true
-	display = "cocoa"
-	efi_firmware_code = var.qemu_efi_firmware
-	efi_firmware_vars = local.qemu_efi_vars
-	accelerator = var.qemu_accelerator
-	machine_type = var.qemu_machine_type
-	cpu_model = "host"
-	format = "qcow2"
-	net_device = "virtio-net"
-	disk_interface = "virtio"
-	headless = false
-	qemu_binary = var.qemu_system_binary
-	# Basic VM args
-	cpus = var.cpus
-	memory = var.memory
-	disk_size = var.disk_size
-	# Installer args
-	http_directory = local.http_dir
-	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
-	iso_target_path = local.iso_path_name
-	iso_urls = local.iso_urls
-	output_directory = local.box_build_dir
-	# Commands
-	boot_command = var.boot_command
-	shutdown_command = local.shutdown_command
-	# Communicator args
-	ssh_password = var.ssh_password
-	ssh_timeout = var.ssh_timeout
-	ssh_username = var.ssh_username
-	vm_name = "${var.box_name}-${var.box_arch}"
-}
+# source "qemu" "qemu" {
+# 	# Qemu args
+# 	efi_boot = true
+# 	display = "cocoa"
+# 	efi_firmware_code = var.qemu_efi_firmware
+# 	efi_firmware_vars = local.qemu_efi_vars
+# 	accelerator = var.qemu_accelerator
+# 	machine_type = var.qemu_machine_type
+# 	cpu_model = "host"
+# 	format = "qcow2"
+# 	net_device = "virtio-net"
+# 	disk_interface = "virtio"
+# 	headless = false
+# 	qemu_binary = var.qemu_system_binary
+# 	# Basic VM args
+# 	cpus = var.cpus
+# 	memory = var.memory
+# 	disk_size = var.disk_size
+# 	# Installer args
+# 	http_directory = local.http_dir
+# 	iso_checksum = "${var.iso_checksum_type}:${var.iso_checksum}"
+# 	iso_target_path = local.iso_path_name
+# 	iso_urls = local.iso_urls
+# 	output_directory = local.box_build_dir
+# 	# Commands
+# 	boot_command = var.boot_command
+# 	shutdown_command = local.shutdown_command
+# 	# Communicator args
+# 	ssh_password = var.ssh_password
+# 	ssh_timeout = var.ssh_timeout
+# 	ssh_username = var.ssh_username
+# 	vm_name = "${var.box_name}-${var.box_arch}"
+# }
 
 source "parallels-iso" "parallels" {
 	# Parallels args
@@ -552,8 +527,8 @@ source "virtualbox-iso" "virtualbox" {
 	guest_additions_mode = "upload"
 	guest_additions_path = var.virtualbox_guest_tools_iso
 	guest_os_type = var.virtualbox_guest_os_type
-	gfx_controller = var.virtualbox_gfx_controller
-	gfx_vram_size = "22"
+	# gfx_controller = var.virtualbox_gfx_controller
+	gfx_vram_size = "33"
 	hard_drive_interface = "virtio"
 	iso_interface = "virtio"
 	bundle_iso = true
@@ -563,11 +538,13 @@ source "virtualbox-iso" "virtualbox" {
 		["modifyvm", "{{ .Name }}", "--chipset", var.virtualbox_chipset],
 		["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
 		["modifyvm", "{{.Name}}", "--audio-enabled", "off"],
+		["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
 		["modifyvm", "{{ .Name }}", "--boot1", "disk"],
 		["modifyvm", "{{ .Name }}", "--boot2", "dvd"],
 		["modifyvm", "{{ .Name }}", "--usb-xhci", "on"],
 		["modifyvm", "{{ .Name }}", "--keyboard", "usb"],
 		["modifyvm", "{{ .Name }}", "--mouse", "usb"],
+		["modifyvm", "{{ .Name }}", "--graphicscontroller", var.virtualbox_gfx_controller],
 		["setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1"],
 		["storagectl", "{{.Name}}", "--name", "IDE Controller", "--remove"],
 	]
@@ -643,7 +620,7 @@ build {
 		"source.parallels-iso.parallels",
 		"source.virtualbox-iso.virtualbox",
 		"source.vmware-iso.vmware",
-		"source.qemu.qemu"
+		# "source.qemu.qemu"
 	]
 
 	provisioner "shell-local" {
@@ -718,6 +695,7 @@ build {
 		post-processor "vagrant" {
 			output = "${var.box_output_dir}/${var.box_output_file}"
 			vagrantfile_template = var.vagrantfile_template
+			include = [var.box_info_file]
 
 		}
 	}

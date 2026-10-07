@@ -32,16 +32,9 @@ install_from_iso() {
 if [ "${BOX_PROVIDER}" = 'virtualbox' ]; then
 
 	if [ -d /sys/firmware/efi ]; then
-		printf -- '==> Copying EFI boot manager to fallback position because VirtualBox EFI is flaky\n'
-		(
-			cd /boot/efi/EFI
-			mkdir -p boot
-			for f in debian/grub*.efi; do
-				if [ -f "$f" ]; then
-					cp "$f" "boot/boot${f#debian/grub}"
-				fi
-			done
-		)
+		printf -- '==> Installing EFI boot manager to fallback position because VirtualBox EFI is flaky\n'
+		[ "$(uname -m)" = "x86_64" ] && ln -sfn /usr/lib/grub/x86_64-efi /usr/lib/grub/amd64-efi
+		grub-install --target="$(dpkg --print-architecture)-efi" --efi-directory=/boot/efi --bootloader-id=debian --removable
 	fi
 
 	case "$(printf -- '%s' "${GUEST_TOOLS:-}" | tr '[:upper:]' '[:lower:]')" in
