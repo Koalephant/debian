@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+NAME = 'debian-test-vagrant'
+
+Vagrant.configure(2) do |config|
+
+	config.vagrant.plugins = ['vagrant-parallels', 'vagrant-vmware-desktop']
+
+	(11..13).each do |version|
+		basename = "debian#{version}"
+		config.vm.define basename do |machine|
+			machine.vm.box = "koalephant/#{basename}"
+			machine.vm.box_url = "https://boxes.storage.koalephant.com/#{basename}.json"
+			vmname = "Debian #{version} VM"
+			[:vmware_workstation, :vmware_fusion, :vmware_desktop].each do |provider|
+				machine.vm.provider(provider) do |vm|
+					vm.vmx[:displayname] = vmname
+				end
+			end
+
+			machine.vm.provider :parallels do |vm|
+				vm.name = vmname
+			end
+
+			machine.vm.provider :virtualbox do |vm|
+				vm.name = vmname
+			end
+		end
+	end
+end
